@@ -1,0 +1,128 @@
+rules_version = '2';
+
+// Regras de segurança do banco. Quem manda aqui é o servidor do Firebase:
+// mesmo que alguém mexa no aplicativo, não consegue passar por cima disto.
+service cloud.firestore {
+  match /databases/{bancoDeDados}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function caminhoDaPelada(pelada) {
+      return /databases/$(bancoDeDados)/documents/peladas/$(pelada);
+    }
+
+    function souMembro(pelada) {
+      return logado()
+        && exists(/databases/$(bancoDeDados)/documents/peladas/$(pelada)/membros/$(request.auth.uid));
+    }
+
+    function souDiretoria(pelada) {
+      return souMembro(pelada)
+        && get(/databases/$(bancoDeDados)/documents/peladas/$(pelada)/membros/$(request.auth.uid)).data.papel == 'diretoria';
+    }
+
+    function codigos(pelada) {
+      return get(/databases/$(bancoDeDados)/documents/peladas/$(pelada)/privado/codigos).data;
+    }
+
+    function resumoDoPinGuardado(pelada, jogador) {
+      return get(/databases/$(bancoDeDados)/documents/peladas/$(pelada)/pins/$(jogador)).data.resumo;
+    }
+
+    // Vale só no momento em que a pelada está sendo criada, tudo numa gravação só.
+    function criandoAgora(pelada) {
+      return logado()
+        && !exists(caminhoDaPelada(pelada))
+        && getAfter(caminhoDaPelada(pelada)).data.donoUsuario == request.auth.uid;
+    }
+
+    match /peladas/{pelada} {
+      // O nome e o tipo da pelada são abertos: é o que aparece na tela de entrar.
+      allow get: if true;
+      allow list: if false;
+      allow create: if logado() && request.resource.data.donoUsuario == request.auth.uid;
+      allow update: if souDiretoria(pelada)
+        && request.resource.data.donoUsuario == resource.data.donoUsuario;
+      allow delete: if false;
+
+      // Códigos da pelada: só a diretoria lê.
+      match /privado/{documento} {
+        allow read: if souDiretoria(pelada);
+        allow create: if criandoAgora(pelada);
+        allow update: if souDiretoria(pelada);
+        allow delete: if false;
+      }
+
+      // PIN de cada jogador. Ninguém lê, nem a diretoria: a conferência acontece
+      // aqui dentro das regras, na hora de entrar.
+      match /pins/{jogador} {
+        allow read: if false;
+        allow create: if criandoAgora(pelada) || (
+          logado()
+          && request.resource.data.resumo is string
+          && (request.resource.data.codigo == codigos(pelada).participante
+              || request.resource.data.codigo == codigos(pelada).diretoria)
+        );
+        allow update: if false;
+        // Zerar o PIN de quem esqueceu.
+        allow delete: if souDiretoria(pelada);
+      }
+
+      // Entrar na pelada: precisa do código certo e do PIN certo.
+      match /membros/{usuario} {
+        allow get: if logado() && (request.auth.uid == usuario || souDiretoria(pelada));
+        allow list: if souDiretoria(pelada);
+        allow create, update: if criandoAgora(pelada) || (
+          logado()
+          && request.auth.uid == usuario
+          && request.resource.data.resumoDoPin == resumoDoPinGuardado(pelada, request.resource.data.jogadorId)
+          && (
+            (request.resource.data.papel == 'participante'
+              && request.resource.data.codigo == codigos(pelada).participante)
+            || (request.resource.data.papel == 'diretoria'
+              && request.resource.data.codigo == codigos(pelada).diretoria)
+          )
+        );
+        allow delete: if logado() && (request.auth.uid == usuario || souDiretoria(pelada));
+      }
+
+      // A lista de nomes é aberta pra quem tem o endereço da pelada: é assim que
+      // a pessoa se acha na tela de entrar. Dinheiro e estatística ficam fora daqui.
+      match /jogadores/{jogador} {
+        allow read: if logado();
+        allow write: if souDiretoria(pelada) || criandoAgora(pelada);
+      }
+
+      // Dias de jogo, mensalidades e caixa: todo mundo da pelada lê, só a
+      // diretoria escreve.
+      match /jogos/{jogo} {
+        allow read: if souMembro(pelada);
+        allow write: if souDiretoria(pelada);
+      }
+
+      match /mensalidades/{ano} {
+        allow read: if souMembro(pelada);
+        allow write: if souDiretoria(pelada);
+      }
+
+      match /caixa/{lancamento} {
+        allow read: if souMembro(pelada);
+        allow write: if souDiretoria(pelada);
+      }
+
+      // Gols e assistências que o próprio jogador lança, esperando a diretoria
+      // aprovar. Cada um só mexe no que é seu.
+      match /lancamentos/{lancamento} {
+        allow read: if souMembro(pelada);
+        allow create: if souMembro(pelada)
+          && request.resource.data.usuario == request.auth.uid
+          && request.resource.data.situacao == 'aguardando';
+        allow update, delete: if souDiretoria(pelada)
+          || (souMembro(pelada) && resource.data.usuario == request.auth.uid
+              && resource.data.situacao == 'aguardando');
+      }
+    }
+  }
+}
