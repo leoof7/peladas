@@ -31,12 +31,21 @@ que aparecem em *Configurações do projeto > Seus aplicativos > Web*.
 | `npm run build` | Gera a versão que vai pro ar, na pasta `dist` |
 | `npm run lint` | Confere o código |
 | `npm run preview` | Abre a versão gerada, pra conferir antes de publicar |
+| `npm run publicar` | Gera o site e publica no ar |
 
 ## Publicação
 
-Todo envio para o ramo `main` publica sozinho, pelo GitHub Actions
-(`.github/workflows/deploy.yml`). Os dados de conexão do Firebase ficam nos
-*secrets* do repositório, com os mesmos nomes do `.env.example`.
+O site fica em **https://leoof7.github.io/peladas/**.
+
+Para publicar uma versão nova:
+
+```bash
+npm run publicar
+```
+
+O comando gera a pasta `dist` e envia para o ramo `gh-pages`, que é o que o
+GitHub Pages mostra. A configuração do Firebase entra na hora de gerar, a partir
+do arquivo `.env` — por isso ele precisa estar preenchido na máquina que publica.
 
 ## Segurança
 

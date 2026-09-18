@@ -9,7 +9,10 @@ const pastaDeEnvio = join(raiz, '.deploy')
 const ehWindows = process.platform === 'win32'
 
 function rodar(programa, argumentos, onde = raiz) {
-  execFileSync(programa, argumentos, { cwd: onde, stdio: 'inherit', shell: ehWindows })
+  // No Windows o npm só roda através do shell. O git não pode usar shell, senão
+  // o texto do commit se quebra nos espaços.
+  const precisaDeShell = ehWindows && programa === 'npm'
+  execFileSync(programa, argumentos, { cwd: onde, stdio: 'inherit', shell: precisaDeShell })
 }
 
 function saida(argumentos) {

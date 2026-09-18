@@ -12,7 +12,8 @@ programador e não quer manter servidor.
 ## Decisão
 
 - **Site estático publicado no GitHub Pages.** Sem servidor pra cuidar e sem
-  custo. A publicação é automática a cada envio pro ramo `main`.
+  custo. A publicação é um comando só: `npm run publicar`, que envia o site
+  pronto pro ramo `gh-pages`.
 - **Firebase (Firestore) como banco de dados**, com login anônimo. O Supabase do
   Leandro já está no limite do plano, então ficou o Firebase.
 - **A segurança mora nas regras do Firestore** (`firestore.rules`), não no
