@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "publicar": "node scripts/publicar.mjs"
   },
   "dependencies": {
     "firebase": "^12.19.0",

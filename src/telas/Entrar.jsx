@@ -36,11 +36,21 @@ export default function Entrar({ peladaId, usuario }) {
     .filter((jogador) => !busca.trim() || semAcento(jogador.nome || '').includes(semAcento(busca.trim())))
     .sort((um, outro) => (um.nome || '').localeCompare(outro.nome || '', 'pt-BR'))
 
-  const podeEntrar = codigo.trim().length >= 4 && jogadorId && pinValido(pin)
+  function oQueFalta() {
+    if (!codigo.trim()) return 'Digite o código da pelada.'
+    if (!jogadorId) return 'Toque no seu nome na lista.'
+    if (!pinValido(pin)) return 'O PIN é de 4 números.'
+    return ''
+  }
 
   async function confirmar(evento) {
     evento.preventDefault()
-    if (!podeEntrar || entrando) return
+    if (entrando) return
+    const falta = oQueFalta()
+    if (falta) {
+      definirErro(falta)
+      return
+    }
     definirEntrando(true)
     definirErro('')
     try {
@@ -110,7 +120,12 @@ export default function Entrar({ peladaId, usuario }) {
                   type="button"
                   className="lista__item"
                   aria-pressed={jogadorId === jogador.id}
-                  onClick={() => definirJogadorId(jogador.id)}
+                  onClick={() => {
+                    definirJogadorId(jogador.id)
+                    // Completa o campo de busca com o nome inteiro, pra ficar claro quem você escolheu.
+                    definirBusca(jogador.nome)
+                    definirErro('')
+                  }}
                 >
                   <span className="lista__textos">
                     <span className="lista__nome">{jogador.nome}</span>
@@ -138,7 +153,7 @@ export default function Entrar({ peladaId, usuario }) {
           </p>
         </div>
 
-        <button type="submit" className="botao botao--principal" disabled={!podeEntrar || entrando}>
+        <button type="submit" className="botao botao--principal" disabled={entrando}>
           {entrando ? 'Entrando…' : 'Entrar'}
         </button>
       </form>

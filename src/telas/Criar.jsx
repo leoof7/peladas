@@ -13,11 +13,21 @@ export default function Criar({ usuario }) {
   const [erro, definirErro] = useState('')
   const [salvando, definirSalvando] = useState(false)
 
-  const podeSalvar = nome.trim().length >= 3 && meuNome.trim().length >= 2 && pinValido(pin)
+  function oQueFalta() {
+    if (nome.trim().length < 3) return 'Escreva o nome da pelada.'
+    if (meuNome.trim().length < 2) return 'Escreva o seu nome.'
+    if (!pinValido(pin)) return 'O PIN é de 4 números.'
+    return ''
+  }
 
   async function salvar(evento) {
     evento.preventDefault()
-    if (!podeSalvar || salvando) return
+    if (salvando) return
+    const falta = oQueFalta()
+    if (falta) {
+      definirErro(falta)
+      return
+    }
     definirSalvando(true)
     definirErro('')
     try {
@@ -98,7 +108,7 @@ export default function Criar({ usuario }) {
           <p className="ajuda">É com ele que você entra no app daqui pra frente.</p>
         </div>
 
-        <button type="submit" className="botao botao--principal" disabled={!podeSalvar || salvando}>
+        <button type="submit" className="botao botao--principal" disabled={salvando}>
           {salvando ? 'Criando…' : 'Criar pelada'}
         </button>
       </form>
