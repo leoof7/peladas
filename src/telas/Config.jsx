@@ -8,6 +8,7 @@ import { irPara } from '../util/rotas.js'
 export default function Config({ peladaId, usuario }) {
   const { pelada, carregando, ehDiretoria } = usePelada(peladaId, usuario)
   const [codigos, definirCodigos] = useState(null)
+  const [codigosRascunho, definirCodigosRascunho] = useState(null)
   const [rascunho, definirRascunho] = useState(null)
   const [recado, definirRecado] = useState('')
   const [erro, definirErro] = useState('')
@@ -19,6 +20,7 @@ export default function Config({ peladaId, usuario }) {
 
   // Enquanto ninguém editou nada, os campos mostram o que está salvo.
   const valores = rascunho ?? (pelada ? { nome: pelada.nome, config: { ...pelada.config } } : null)
+  const codigosAtuais = codigosRascunho ?? { participante: codigos?.participante || '', diretoria: codigos?.diretoria || '' }
 
   if (carregando || !valores) {
     return (
@@ -53,24 +55,47 @@ export default function Config({ peladaId, usuario }) {
     mudarConfig('uniformes', uniformes)
   }
 
+  function mudarCodigo(qual, texto) {
+    const limpo = texto
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 12)
+    definirCodigosRascunho({ ...codigosAtuais, [qual]: limpo })
+  }
+
+  function problemaNosCodigos() {
+    if (!codigosRascunho) return ''
+    const { participante, diretoria } = codigosAtuais
+    if ((participante || '').length < 4 || (diretoria || '').length < 4) {
+      return 'Cada código precisa ter pelo menos 4 letras ou números.'
+    }
+    if (participante === diretoria) {
+      return 'O código dos jogadores e o da diretoria precisam ser diferentes.'
+    }
+    return ''
+  }
+
   async function salvar(evento) {
     evento.preventDefault()
+    const problema = problemaNosCodigos()
+    if (problema) {
+      definirErro(problema)
+      return
+    }
     try {
       await gravar(`peladas/${peladaId}`, { nome: valores.nome.trim(), config: valores.config })
+      if (codigosRascunho) {
+        await gravar(`peladas/${peladaId}/privado/codigos`, {
+          participante: codigosAtuais.participante,
+          diretoria: codigosAtuais.diretoria,
+        })
+        definirCodigosRascunho(null)
+      }
       definirRecado('Salvo.')
       definirErro('')
       setTimeout(() => definirRecado(''), 2000)
     } catch {
       definirErro('Não consegui salvar.')
-    }
-  }
-
-  async function trocarCodigo(qual) {
-    try {
-      await gravar(`peladas/${peladaId}/privado/codigos`, { [qual]: gerarCodigo() })
-      definirErro('')
-    } catch {
-      definirErro('Não consegui trocar o código.')
     }
   }
 
@@ -240,30 +265,43 @@ export default function Config({ peladaId, usuario }) {
           </p>
           {['participante', 'diretoria'].map((qual) => (
             <div key={qual} className="campo">
-              <span style={{ fontSize: 14, fontWeight: 700 }}>
+              <label htmlFor={`codigo-${qual}`}>
                 {qual === 'participante' ? 'Código dos jogadores' : 'Código da diretoria'}
-              </span>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span className="codigo" style={{ flexGrow: 1, fontSize: 22 }}>
-                  {codigos?.[qual] || '······'}
-                </span>
+              </label>
+              <input
+                id={`codigo-${qual}`}
+                className="codigo"
+                value={codigosAtuais[qual]}
+                onChange={(evento) => mudarCodigo(qual, evento.target.value)}
+                autoComplete="off"
+                inputMode="text"
+                placeholder="MADRUGA26"
+              />
+              <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   type="button"
                   className="botao botao--pequeno"
-                  onClick={() => copiar(codigos?.[qual] || '')}
-                  disabled={!codigos?.[qual]}
+                  onClick={() => copiar(codigosAtuais[qual])}
+                  disabled={!codigosAtuais[qual]}
+                  style={{ flex: 1 }}
                 >
                   Copiar
                 </button>
-                <button type="button" className="botao botao--pequeno" onClick={() => trocarCodigo(qual)}>
-                  Trocar
+                <button
+                  type="button"
+                  className="botao botao--pequeno"
+                  onClick={() => mudarCodigo(qual, gerarCodigo())}
+                  style={{ flex: 1 }}
+                >
+                  Sortear
                 </button>
               </div>
             </div>
           ))}
           <p className="ajuda">
-            Trocou o código? Quem já entrou continua entrando. O código novo vale pra quem for entrar daqui pra
-            frente.
+            Escreva o código que quiser, de 4 a 12 letras e números, sem espaço nem acento. Os dois precisam ser
+            diferentes um do outro. Quem já entrou continua entrando; o código novo vale pra quem for entrar
+            daqui pra frente.
           </p>
         </div>
 
