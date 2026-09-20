@@ -5,6 +5,25 @@ import { gerarCodigo } from '../dados/pelada.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { irPara } from '../util/rotas.js'
 
+const CAMPOS_NUMERICOS = [
+  'mensalidade',
+  'valorDerrota',
+  'jogamPorDia',
+  'valorAluguel',
+  'limiteVagas',
+  'naLinhaPorTime',
+]
+
+// Aceita o jeito brasileiro de escrever: 60, 60,00 ou 1.200,50.
+function paraNumero(valor) {
+  if (typeof valor === 'number') return valor
+  const texto = String(valor ?? '').trim()
+  if (!texto) return 0
+  const limpo = texto.includes(',') ? texto.replace(/\./g, '').replace(',', '.') : texto
+  const numero = Number(limpo)
+  return Number.isFinite(numero) ? numero : NaN
+}
+
 export default function Config({ peladaId, usuario }) {
   const { pelada, carregando, ehDiretoria } = usePelada(peladaId, usuario)
   const [codigos, definirCodigos] = useState(null)
@@ -12,6 +31,7 @@ export default function Config({ peladaId, usuario }) {
   const [rascunho, definirRascunho] = useState(null)
   const [recado, definirRecado] = useState('')
   const [erro, definirErro] = useState('')
+  const [situacao, definirSituacao] = useState('parado')
 
   useEffect(() => {
     if (!ehDiretoria) return undefined
@@ -77,13 +97,26 @@ export default function Config({ peladaId, usuario }) {
 
   async function salvar(evento) {
     evento.preventDefault()
+    if (situacao === 'salvando') return
+
     const problema = problemaNosCodigos()
     if (problema) {
       definirErro(problema)
       return
     }
+
+    const config = { ...valores.config }
+    for (const chave of CAMPOS_NUMERICOS) {
+      if (chave in config) config[chave] = paraNumero(config[chave])
+    }
+    if (CAMPOS_NUMERICOS.some((chave) => chave in config && Number.isNaN(config[chave]))) {
+      definirErro('Confira os valores: use só números, como 60 ou 12,50.')
+      return
+    }
+
+    definirSituacao('salvando')
     try {
-      await gravar(`peladas/${peladaId}`, { nome: valores.nome.trim(), config: valores.config })
+      await gravar(`peladas/${peladaId}`, { nome: valores.nome.trim(), config })
       if (codigosRascunho) {
         await gravar(`peladas/${peladaId}/privado/codigos`, {
           participante: codigosAtuais.participante,
@@ -91,11 +124,16 @@ export default function Config({ peladaId, usuario }) {
         })
         definirCodigosRascunho(null)
       }
-      definirRecado('Salvo.')
       definirErro('')
-      setTimeout(() => definirRecado(''), 2000)
-    } catch {
-      definirErro('Não consegui salvar.')
+      definirSituacao('salvo')
+      setTimeout(() => definirSituacao('parado'), 2500)
+    } catch (falha) {
+      definirSituacao('parado')
+      definirErro(
+        falha?.code === 'permission-denied'
+          ? 'O servidor recusou: só a diretoria pode salvar aqui.'
+          : 'Não consegui salvar. Confira a internet e tente de novo.',
+      )
     }
   }
 
@@ -144,33 +182,27 @@ export default function Config({ peladaId, usuario }) {
                 <label htmlFor="mensalidade">Mensalidade (R$)</label>
                 <input
                   id="mensalidade"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={valores.config.mensalidade ?? 0}
-                  onChange={(evento) => mudarConfig('mensalidade', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.mensalidade ?? ''}
+                  onChange={(evento) => mudarConfig('mensalidade', evento.target.value)}
                 />
               </div>
               <div className="campo">
                 <label htmlFor="derrota">Perdeu ou empatou (R$ por jogador)</label>
                 <input
                   id="derrota"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={valores.config.valorDerrota ?? 0}
-                  onChange={(evento) => mudarConfig('valorDerrota', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.valorDerrota ?? ''}
+                  onChange={(evento) => mudarConfig('valorDerrota', evento.target.value)}
                 />
               </div>
               <div className="campo">
                 <label htmlFor="jogam">Quantos jogam por domingo</label>
                 <input
                   id="jogam"
-                  type="number"
-                  min="2"
-                  step="1"
-                  value={valores.config.jogamPorDia ?? 22}
-                  onChange={(evento) => mudarConfig('jogamPorDia', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.jogamPorDia ?? ''}
+                  onChange={(evento) => mudarConfig('jogamPorDia', evento.target.value)}
                 />
                 <p className="ajuda">Quem passar disso entra no 2º tempo, por ordem de chegada.</p>
               </div>
@@ -181,11 +213,9 @@ export default function Config({ peladaId, usuario }) {
                 <label htmlFor="aluguel">Aluguel da quadra (R$)</label>
                 <input
                   id="aluguel"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={valores.config.valorAluguel ?? 0}
-                  onChange={(evento) => mudarConfig('valorAluguel', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.valorAluguel ?? ''}
+                  onChange={(evento) => mudarConfig('valorAluguel', evento.target.value)}
                 />
                 <p className="ajuda">Valor de sempre. Dá pra mudar em cada pelada, quando a quadra for outra.</p>
               </div>
@@ -193,22 +223,18 @@ export default function Config({ peladaId, usuario }) {
                 <label htmlFor="vagas">Limite de vagas</label>
                 <input
                   id="vagas"
-                  type="number"
-                  min="2"
-                  step="1"
-                  value={valores.config.limiteVagas ?? 20}
-                  onChange={(evento) => mudarConfig('limiteVagas', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.limiteVagas ?? ''}
+                  onChange={(evento) => mudarConfig('limiteVagas', evento.target.value)}
                 />
               </div>
               <div className="campo">
                 <label htmlFor="linha">Na linha por time</label>
                 <input
                   id="linha"
-                  type="number"
-                  min="3"
-                  step="1"
-                  value={valores.config.naLinhaPorTime ?? 5}
-                  onChange={(evento) => mudarConfig('naLinhaPorTime', Number(evento.target.value))}
+                  inputMode="decimal"
+                  value={valores.config.naLinhaPorTime ?? ''}
+                  onChange={(evento) => mudarConfig('naLinhaPorTime', evento.target.value)}
                 />
               </div>
             </>
@@ -305,8 +331,9 @@ export default function Config({ peladaId, usuario }) {
           </p>
         </div>
 
-        <button type="submit" className="botao botao--principal">
-          Salvar
+        {erro && <p className="erro">{erro}</p>}
+        <button type="submit" className="botao botao--principal" disabled={situacao === 'salvando'}>
+          {situacao === 'salvando' ? 'Salvando…' : situacao === 'salvo' ? 'Salvo ✓' : 'Salvar'}
         </button>
       </form>
     </div>
