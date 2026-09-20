@@ -7,6 +7,11 @@ import Entrar from './telas/Entrar.jsx'
 import Pelada from './telas/Pelada.jsx'
 import Jogadores from './telas/Jogadores.jsx'
 import Config from './telas/Config.jsx'
+import Jogos from './telas/Jogos.jsx'
+import Jogo from './telas/Jogo.jsx'
+import Ranking from './telas/Ranking.jsx'
+import Financeiro from './telas/Financeiro.jsx'
+import MeusGols from './telas/MeusGols.jsx'
 
 export default function App() {
   const rota = useRota()
@@ -43,7 +48,7 @@ export default function App() {
     )
   }
 
-  const [secao, peladaId, subtela] = rota
+  const [secao, peladaId, subtela, detalhe] = rota
 
   if (secao === 'nova') return <Criar usuario={usuario} />
 
@@ -51,6 +56,11 @@ export default function App() {
     if (subtela === 'entrar') return <Entrar peladaId={peladaId} usuario={usuario} />
     if (subtela === 'jogadores') return <Jogadores peladaId={peladaId} usuario={usuario} />
     if (subtela === 'config') return <Config peladaId={peladaId} usuario={usuario} />
+    if (subtela === 'jogos') return <Jogos peladaId={peladaId} usuario={usuario} />
+    if (subtela === 'j' && detalhe) return <Jogo peladaId={peladaId} jogoId={detalhe} usuario={usuario} />
+    if (subtela === 'ranking') return <Ranking peladaId={peladaId} usuario={usuario} />
+    if (subtela === 'financeiro') return <Financeiro peladaId={peladaId} usuario={usuario} />
+    if (subtela === 'meus-gols') return <MeusGols peladaId={peladaId} usuario={usuario} />
     return <Pelada peladaId={peladaId} usuario={usuario} />
   }
 

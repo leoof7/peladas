@@ -75,14 +75,26 @@ export async function lerDoc(caminho) {
   return dados[caminho] ? { id: ultimoPedaco(caminho), ...dados[caminho] } : null
 }
 
+// Mescla igual ao Firebase: mapa dentro de mapa se junta chave por chave,
+// lista é trocada inteira.
+function mesclarFundo(atual, novo) {
+  const resultado = { ...(atual || {}) }
+  for (const [chave, valor] of Object.entries(novo || {})) {
+    const ehMapa = valor && typeof valor === 'object' && !Array.isArray(valor)
+    const tinhaMapa = resultado[chave] && typeof resultado[chave] === 'object' && !Array.isArray(resultado[chave])
+    resultado[chave] = ehMapa && tinhaMapa ? mesclarFundo(resultado[chave], valor) : valor
+  }
+  return resultado
+}
+
 export async function gravar(caminho, novosDados, { mesclar = true } = {}) {
-  dados[caminho] = mesclar ? { ...(dados[caminho] || {}), ...novosDados } : { ...novosDados }
+  dados[caminho] = mesclar ? mesclarFundo(dados[caminho], novosDados) : { ...novosDados }
   salvar()
 }
 
 export async function gravarLote(itens) {
   for (const { caminho, dados: novosDados, mesclar = true } of itens) {
-    dados[caminho] = mesclar ? { ...(dados[caminho] || {}), ...novosDados } : { ...novosDados }
+    dados[caminho] = mesclar ? mesclarFundo(dados[caminho], novosDados) : { ...novosDados }
   }
   salvar()
 }

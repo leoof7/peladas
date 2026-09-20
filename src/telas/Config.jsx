@@ -75,6 +75,12 @@ export default function Config({ peladaId, usuario }) {
     mudarConfig('uniformes', uniformes)
   }
 
+  function mudarRecebedor(indice, campos) {
+    const lista = [...(valores.config.recebedores || [])]
+    lista[indice] = { ...lista[indice], ...campos }
+    mudarConfig('recebedores', lista)
+  }
+
   function mudarCodigo(qual, texto) {
     const limpo = texto
       .toUpperCase()
@@ -284,6 +290,97 @@ export default function Config({ peladaId, usuario }) {
             </button>
           </div>
         )}
+
+        <div className="cartao">
+          <h2 className="titulo-secao">Quem recebe o Pix</h2>
+          <p className="ajuda">
+            Sem QR Code: o app mostra a chave e todo mundo copia. Só a diretoria edita.
+          </p>
+          {(valores.config.recebedores || []).map((pessoa, indice) => (
+            <div key={indice} className="cartao" style={{ background: 'var(--chao)', border: 0, padding: 12 }}>
+              <div className="campo">
+                <label htmlFor={`recebedor-nome-${indice}`}>Nome</label>
+                <input
+                  id={`recebedor-nome-${indice}`}
+                  value={pessoa.nome || ''}
+                  onChange={(evento) => mudarRecebedor(indice, { nome: evento.target.value })}
+                  placeholder="Zé Luiz"
+                />
+              </div>
+              <div className="campo">
+                <label htmlFor={`recebedor-tipo-${indice}`}>Tipo da chave</label>
+                <select
+                  id={`recebedor-tipo-${indice}`}
+                  value={pessoa.tipoChave || 'Celular'}
+                  onChange={(evento) => mudarRecebedor(indice, { tipoChave: evento.target.value })}
+                >
+                  {['Celular', 'CPF', 'CNPJ', 'E-mail', 'Chave aleatória'].map((tipo) => (
+                    <option key={tipo} value={tipo}>
+                      {tipo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="campo">
+                <label htmlFor={`recebedor-chave-${indice}`}>Chave Pix</label>
+                <input
+                  id={`recebedor-chave-${indice}`}
+                  value={pessoa.chave || ''}
+                  onChange={(evento) => mudarRecebedor(indice, { chave: evento.target.value })}
+                  placeholder="(31) 90000-0000"
+                />
+              </div>
+              <button
+                type="button"
+                className="botao botao--pequeno"
+                onClick={() =>
+                  mudarConfig(
+                    'recebedores',
+                    (valores.config.recebedores || []).filter((_, outro) => outro !== indice),
+                  )
+                }
+              >
+                Tirar {pessoa.nome || 'este'}
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="botao botao--pequeno"
+            onClick={() =>
+              mudarConfig('recebedores', [
+                ...(valores.config.recebedores || []),
+                { nome: '', tipoChave: 'Celular', chave: '' },
+              ])
+            }
+          >
+            + Adicionar quem recebe
+          </button>
+
+          {(valores.config.recebedores || []).length > 0 &&
+            (ehMensal
+              ? [
+                  { campo: 'recebeMensalidade', nome: 'Quem recebe a mensalidade' },
+                  { campo: 'recebeDomingo', nome: 'Quem recebe os R$ 2 dos domingos' },
+                ]
+              : [{ campo: 'recebePelada', nome: 'Quem recebe o rateio, normalmente' }]
+            ).map((item) => (
+              <div className="campo" key={item.campo}>
+                <label htmlFor={item.campo}>{item.nome}</label>
+                <select
+                  id={item.campo}
+                  value={String(valores.config[item.campo] ?? 0)}
+                  onChange={(evento) => mudarConfig(item.campo, Number(evento.target.value))}
+                >
+                  {(valores.config.recebedores || []).map((pessoa, indice) => (
+                    <option key={indice} value={indice}>
+                      {pessoa.nome || `Pessoa ${indice + 1}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
+        </div>
 
         <div className="cartao">
           <h2 className="titulo-secao">Acesso</h2>

@@ -22,7 +22,7 @@ const VAZIO = {
 }
 
 export default function Jogadores({ peladaId, usuario }) {
-  const { pelada, jogadores, carregando, ehDiretoria } = usePelada(peladaId, usuario)
+  const { pelada, membro, jogadores, carregando, ehDiretoria } = usePelada(peladaId, usuario)
   const [emEdicao, definirEmEdicao] = useState(null)
   const [mostrarInativos, definirMostrarInativos] = useState(false)
   const [erro, definirErro] = useState('')
@@ -82,6 +82,28 @@ export default function Jogadores({ peladaId, usuario }) {
     )
   }
 
+  // Sem ser da pelada, não tem o que fazer nesta tela.
+  if (!membro) {
+    return (
+      <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
+        <Cabecalho titulo="Jogadores" aoVoltar={() => irPara('/')} />
+        <div className="conteudo">
+          <p className="erro">Você não está nesta pelada neste aparelho.</p>
+          <button
+            type="button"
+            className="botao botao--principal"
+            onClick={() => irPara(`/p/${peladaId}/entrar`)}
+          >
+            Entrar na pelada
+          </button>
+          <button type="button" className="botao" onClick={() => irPara('/')}>
+            Voltar pro início
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
       <Cabecalho
@@ -99,7 +121,7 @@ export default function Jogadores({ peladaId, usuario }) {
           </button>
         )}
 
-        {emEdicao && (
+        {ehDiretoria && emEdicao && (
           <form className="cartao" onSubmit={salvar}>
             <h2 className="titulo-secao">{emEdicao.id ? 'Editar jogador' : 'Novo jogador'}</h2>
 
@@ -128,7 +150,14 @@ export default function Jogadores({ peladaId, usuario }) {
               <select
                 id="posicao"
                 value={emEdicao.posicao}
-                onChange={(evento) => definirEmEdicao({ ...emEdicao, posicao: evento.target.value })}
+                onChange={(evento) =>
+                  definirEmEdicao({
+                    ...emEdicao,
+                    posicao: evento.target.value,
+                    // "Não paga" é coisa de goleiro fixo: sai de cena com a posição.
+                    isento: evento.target.value === 'goleiro' ? emEdicao.isento : false,
+                  })
+                }
               >
                 {POSICOES.map((posicao) => (
                   <option key={posicao.chave} value={posicao.chave}>
@@ -139,30 +168,20 @@ export default function Jogadores({ peladaId, usuario }) {
               <p className="ajuda">Lateral e volante contam como defesa.</p>
             </div>
 
-            <div className="campo">
-              <label htmlFor="tipo-jogador">Tipo</label>
-              <select
-                id="tipo-jogador"
-                value={emEdicao.tipoJogador}
-                onChange={(evento) => definirEmEdicao({ ...emEdicao, tipoJogador: evento.target.value })}
-              >
-                <option value="fixo">Fixo</option>
-                <option value="convidado">Convidado</option>
-              </select>
-            </div>
-
-            <label className="lista__item lista__item--fixo" style={{ padding: 0 }}>
-              <input
-                type="checkbox"
-                checked={emEdicao.isento}
-                onChange={(evento) => definirEmEdicao({ ...emEdicao, isento: evento.target.checked })}
-                style={{ width: 22, height: 22 }}
-              />
-              <span className="lista__textos">
-                <span className="lista__nome">Não paga (isento)</span>
-                <span className="lista__detalhe">Ex.: goleiro fixo. Gols e presença continuam contando.</span>
-              </span>
-            </label>
+            {emEdicao.posicao === 'goleiro' && (
+              <label className="lista__item lista__item--fixo" style={{ padding: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={emEdicao.isento}
+                  onChange={(evento) => definirEmEdicao({ ...emEdicao, isento: evento.target.checked })}
+                  style={{ width: 22, height: 22 }}
+                />
+                <span className="lista__textos">
+                  <span className="lista__nome">Goleiro fixo, não paga</span>
+                  <span className="lista__detalhe">Não paga mensalidade nem os R$ 2. Gols e presença contam igual.</span>
+                </span>
+              </label>
+            )}
 
             {emEdicao.id && (
               <label className="lista__item lista__item--fixo" style={{ padding: 0 }}>
@@ -205,11 +224,11 @@ export default function Jogadores({ peladaId, usuario }) {
                     <span className="lista__detalhe">
                       {[
                         jogador.apelido,
-                        jogador.tipoJogador === 'convidado' ? 'convidado' : 'fixo',
-                        jogador.isento ? 'isento' : null,
+                        jogador.tipoJogador === 'convidado' ? 'convidado' : null,
+                        jogador.isento ? 'não paga' : null,
                       ]
                         .filter(Boolean)
-                        .join(' · ')}
+                        .join(' · ') || 'jogador da pelada'}
                     </span>
                   </span>
                   <span className="selo selo--posicao">
