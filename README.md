@@ -47,6 +47,19 @@ O comando gera a pasta `dist` e envia para o ramo `gh-pages`, que é o que o
 GitHub Pages mostra. A configuração do Firebase entra na hora de gerar, a partir
 do arquivo `.env` — por isso ele precisa estar preenchido na máquina que publica.
 
+## Firebase
+
+Projeto **FUTEBOIS** (`futebois`), plano grátis (Spark).
+
+- Banco Firestore em **southamerica-east1 (São Paulo)**.
+- Authentication com entrada **anônima** ligada — é só pra reconhecer o aparelho;
+  quem identifica a pessoa é o código da pelada e o PIN.
+- Para enviar as regras de segurança depois de alterá-las:
+
+```bash
+npx --yes firebase-tools deploy --only firestore:rules --project futebois
+```
+
 ## Segurança
 
 - As regras de quem pode ler e escrever ficam em `firestore.rules`, no servidor
