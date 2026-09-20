@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import { agora, apagar, gravar, novoId } from '../dados/api.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
+import { semAcento } from '../util/formato.js'
 import { irPara } from '../util/rotas.js'
 
 const POSICOES = [
@@ -35,9 +36,24 @@ export default function Jogadores({ peladaId, usuario }) {
     const dados = { ...emEdicao }
     const id = dados.id || novoId()
     delete dados.id
-    if (!dados.nome?.trim()) return
+
+    if ((dados.nome || '').trim().length < 2) {
+      definirErro('Escreva o nome do jogador.')
+      return
+    }
     dados.nome = dados.nome.trim()
     dados.apelido = (dados.apelido || '').trim()
+
+    const repetido = jogadores.some(
+      (jogador) => jogador.id !== id && semAcento(jogador.nome) === semAcento(dados.nome),
+    )
+    if (repetido) {
+      definirErro(
+        'Já existe um jogador com esse nome. Escreva de um jeito que dê pra diferenciar, tipo "Léo Alto".',
+      )
+      return
+    }
+
     try {
       await gravar(`peladas/${peladaId}/jogadores/${id}`, { ...dados, criadoEm: dados.criadoEm || agora() })
       definirEmEdicao(null)

@@ -375,3 +375,63 @@ textarea {
 .centro {
   text-align: center;
 }
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  text-align: center;
+}
+
+.numero {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--chao);
+  border-radius: 12px;
+  padding: 10px 6px;
+}
+
+.numero__valor {
+  font-family: var(--titulo);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.numero__nome {
+  font-size: 12px;
+  color: var(--suave);
+  line-height: 1.2;
+}
+
+.destaque-codigo {
+  background: var(--chao);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.destaque-codigo__rotulo {
+  font-size: 13px;
+  color: var(--suave);
+  font-weight: 600;
+}
+
+.destaque-codigo__valor {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.etapas {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+}

@@ -126,7 +126,8 @@ export default function Config({ peladaId, usuario }) {
       }
       definirErro('')
       definirSituacao('salvo')
-      setTimeout(() => definirSituacao('parado'), 2500)
+      // Mostra o "Salvo" e volta pra tela da pelada.
+      setTimeout(() => irPara(`/p/${peladaId}`), 900)
     } catch (falha) {
       definirSituacao('parado')
       definirErro(

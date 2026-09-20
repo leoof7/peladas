@@ -3,15 +3,9 @@ import AvisoModoTeste from '../componentes/AvisoModoTeste.jsx'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import { assinarColecao, assinarDoc } from '../dados/api.js'
 import { entrarNaPelada } from '../dados/pelada.js'
+import { semAcento } from '../util/formato.js'
 import { pinValido } from '../util/pin.js'
 import { irPara } from '../util/rotas.js'
-
-function semAcento(texto) {
-  return texto
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-}
 
 export default function Entrar({ peladaId, usuario }) {
   const [pelada, definirPelada] = useState(undefined)
