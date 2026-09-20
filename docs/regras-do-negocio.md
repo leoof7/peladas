@@ -14,7 +14,12 @@ Decisões combinadas com o Leandro em 17/09/2026. Se alguma regra mudar, atualiz
 ## Acesso
 
 - Dois perfis: **diretoria** e **participante**.
+- A **diretoria vê tudo o que o participante vê**, mais as funções de diretoria.
 - **Só a diretoria** tira time, muda uniforme, altera dados, marca pagamento e edita chaves Pix.
+- A diretoria escreve os códigos como quiser (4 a 12 letras e números). Os dois códigos
+  precisam ser diferentes entre si.
+- Cada jogador é cadastrado pela diretoria. No primeiro acesso ele acha o próprio nome na
+  lista e o PIN que digitar vira o dele. Nomes repetidos não são aceitos no cadastro.
 - Participante consulta, copia a chave Pix e lança os próprios gols e assistências (a diretoria aprova).
 - Entrada: **código da pelada → escolhe o próprio nome → PIN de 4 números**.
   - O PIN é criado no primeiro acesso. A diretoria pode zerar o PIN de quem esqueceu.
