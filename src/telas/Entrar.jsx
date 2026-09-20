@@ -67,7 +67,16 @@ export default function Entrar({ peladaId, usuario }) {
       <div className="app">
         <Cabecalho titulo="Pelada não encontrada" aoVoltar={() => irPara('/')} />
         <div className="conteudo">
-          <p className="erro">Não achei nenhuma pelada nesse endereço. Confira o link com a diretoria.</p>
+          <p className="erro">Não achei nenhuma pelada nesse endereço.</p>
+          <p className="ajuda">
+            Ou o link veio errado, ou essa pelada ainda não foi criada. Confira com a diretoria, ou crie a sua.
+          </p>
+          <button type="button" className="botao botao--principal" onClick={() => irPara('/nova')}>
+            Criar uma pelada
+          </button>
+          <button type="button" className="botao" onClick={() => irPara('/')}>
+            Voltar pro início
+          </button>
         </div>
       </div>
     )
