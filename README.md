@@ -30,8 +30,21 @@ que aparecem em *Configurações do projeto > Seus aplicativos > Web*.
 | `npm run dev` | Abre o app no computador pra desenvolvimento |
 | `npm run build` | Gera a versão que vai pro ar, na pasta `dist` |
 | `npm run lint` | Confere o código |
+| `npm test` | Roda os testes automáticos das contas |
 | `npm run preview` | Abre a versão gerada, pra conferir antes de publicar |
 | `npm run publicar` | Gera o site e publica no ar |
+
+## Testes
+
+As contas da pelada — quem paga, quanto, divisão no centavo, ranking e a leitura
+da lista colada do grupo — ficam em `src/dados/regras.js`, sem tela e sem banco
+no meio. Os testes ficam em `src/dados/regras.test.js`:
+
+```bash
+npm test
+```
+
+Rode isso sempre que mexer em valor, divisão ou estatística.
 
 ## Publicação
 

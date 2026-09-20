@@ -80,6 +80,23 @@ Decisões combinadas com o Leandro em 17/09/2026. Se alguma regra mudar, atualiz
 - Botão **"Todos pagaram"** pra dar baixa em lote e depois desmarcar quem não pagou.
 - Aba de **financeiro/caixa**: entradas e saídas (aluguel, bola, colete, água) e saldo.
 
+## O que o app já faz (20/09/2026)
+
+- Entrar com código + nome + PIN, com os dois perfis.
+- Cadastro de jogadores, com goleiro fixo isento e quem saiu desativado.
+- Dia de jogo em quatro passos: chegada, times, gols e cobrança.
+- Chegada: colar a lista do grupo, cadastrar convidado na hora, ordem editável.
+- Times: tampinha na Madrugada (com uniforme por time) e sorteio na Shekinah.
+- Gols e assistências, com o jogador lançando os dele e a diretoria aprovando.
+- Cobrança: os R$ 2 de quem perdeu ou empatou, mensalidade por mês, rateio da
+  quadra, chave Pix pra copiar e botão "Todos pagaram".
+- Ranking do ano: gols, assistências, presença e aproveitamento.
+- Caixa: o que os jogadores pagaram entra sozinho; aluguel, bola e colete são
+  lançados à mão.
+
+Ainda não existe: leitura de print ou foto da lista (por enquanto é colar o
+texto), foto do grupo e dos jogadores, e mandar resumo pro WhatsApp.
+
 ## Virada do ano
 
 - Dívida de dezembro fica em dezembro.
