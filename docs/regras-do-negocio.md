@@ -42,9 +42,18 @@ Decisões combinadas com o Leandro em 17/09/2026. Se alguma regra mudar, atualiz
 - A diretoria também pode lançar e corrigir direto.
 - Só entra no ranking o que foi aprovado.
 
-## Lista de chegada (as duas peladas)
+## Lista e chegada (as duas peladas)
 
-- A lista pode entrar de três jeitos: **colar o texto** do WhatsApp, **print** do grupo ou **foto da lista de papel**. A diretoria confere os nomes antes de salvar.
+São duas coisas diferentes:
+
+- **Lista** é quem disse que vem. Pode entrar de três jeitos: **colar o texto** do WhatsApp,
+  **print** do grupo ou **foto da lista de papel**; ou puxando dos **jogadores já cadastrados**.
+  A diretoria confere os nomes antes de salvar. O nome lido do grupo casa pelo nome **ou pelo apelido**.
+- **Chegou** é quem apareceu de verdade, na ordem em que chegou. Só quem chegou entra em time,
+  conta presença e entra na conta do dinheiro.
+
+Tudo isso é **ao vivo**: o que a diretoria muda aparece na hora pros outros diretores e pros
+jogadores, sem ninguém precisar recarregar.
 
 ## Pelada da Madrugada (campo, todo domingo de manhã)
 
