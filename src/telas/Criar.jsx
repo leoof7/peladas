@@ -39,8 +39,12 @@ export default function Criar({ usuario }) {
         pin,
       })
       irPara(`/p/${peladaId}/config`)
-    } catch {
-      definirErro('Não consegui criar a pelada. Tente de novo.')
+    } catch (falha) {
+      definirErro(
+        falha?.code === 'permission-denied'
+          ? 'O servidor recusou a criação. Recarregue a página e tente de novo.'
+          : `Não consegui criar a pelada (${falha?.code || falha?.message || 'erro'}). Tente de novo.`,
+      )
       definirSalvando(false)
     }
   }

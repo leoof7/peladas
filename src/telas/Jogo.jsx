@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import { agora, gravar } from '../dados/api.js'
-import { resumoDoDinheiroDoJogo } from '../dados/regras.js'
+import { presentes, resumoDoDinheiroDoJogo } from '../dados/regras.js'
 import { useColecao, useDoc } from '../dados/useColecao.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { dataCurta } from '../util/formato.js'
@@ -36,6 +36,9 @@ export default function Jogo({ peladaId, jogoId, usuario }) {
     try {
       await gravar(`peladas/${peladaId}/jogos/${jogoId}`, { ...campos, atualizadoEm: momento })
       definirErro('')
+      // Gravou: solta a cópia pra tela voltar a seguir o banco ao vivo,
+      // inclusive quando outro diretor mexer no mesmo dia.
+      definirCopia((atual) => (atual?.atualizadoEm === momento ? null : atual))
     } catch {
       definirErro('Não consegui salvar. Só a diretoria edita o dia de jogo.')
       definirCopia(null)
@@ -59,7 +62,7 @@ export default function Jogo({ peladaId, jogoId, usuario }) {
 
   const resumo = resumoDoDinheiroDoJogo(pelada, jogoAtual, jogadores)
   const feitos = [
-    (jogoAtual.lista || []).length > 0,
+    presentes(jogoAtual).length > 0,
     (jogoAtual.times || []).length > 0,
     ehMensal ? Boolean(jogoAtual.placar) : Object.keys(jogoAtual.gols || {}).length > 0,
     resumo.quantidade > 0 && resumo.falta === 0,

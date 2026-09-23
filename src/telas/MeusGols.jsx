@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import Contador from '../componentes/Contador.jsx'
 import { agora, gravar, novoId } from '../dados/api.js'
+import { presentes } from '../dados/regras.js'
 import { useColecao } from '../dados/useColecao.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { dataCurta } from '../util/formato.js'
@@ -34,7 +35,7 @@ export default function MeusGols({ peladaId, usuario }) {
 
   const meuId = membro.jogadorId
   const meus = jogos
-    .filter((jogo) => (jogo.lista || []).includes(meuId) && jogo.status !== 'cancelado')
+    .filter((jogo) => presentes(jogo).includes(meuId) && jogo.status !== 'cancelado')
     .sort((um, outro) => (outro.data || '').localeCompare(um.data || ''))
     .slice(0, 6)
   const jogo = meus.find((item) => item.id === escolhido) || meus[0]

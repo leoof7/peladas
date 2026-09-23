@@ -88,6 +88,43 @@ test('Shekinah: divide o aluguel por quem jogou, sem contar isento', () => {
   assert.equal(cobrancas[0].valor, 60)
 })
 
+test('quem paga é quem chegou, não quem estava na lista', () => {
+  const jogo = {
+    data: '2026-09-23',
+    lista: ['a', 'b', 'c', 'e'],
+    chegaram: ['a', 'b'],
+    custo: 100,
+  }
+  const cobrancas = quemPaga(shekinah, jogo, jogadores)
+  assert.deepEqual(
+    cobrancas.map(({ jogadorId }) => jogadorId),
+    ['a', 'b'],
+  )
+  assert.equal(cobrancas[0].valor, 50)
+})
+
+test('presença conta quem chegou', () => {
+  const jogos = [{ data: '2026-09-23', lista: ['a', 'b', 'c'], chegaram: ['a'] }]
+  const tabela = estatisticasDoAno(jogos, jogadores, 2026)
+  assert.equal(tabela.find((linha) => linha.jogadorId === 'a').jogos, 1)
+  assert.equal(
+    tabela.find((linha) => linha.jogadorId === 'b'),
+    undefined,
+  )
+})
+
+test('casa o nome lido pelo apelido também', () => {
+  const comApelido = [
+    { id: 'x', nome: 'José Carlos', apelido: 'Zeca', ativo: true },
+    { id: 'y', nome: 'Wanderley', apelido: 'Wander', ativo: true },
+  ]
+  const casados = casarNomes(['zeca', 'Wander', 'Zequinha'], comApelido)
+  assert.equal(casados[0].jogadorId, 'x')
+  assert.equal(casados[0].certeza, 'exato')
+  assert.equal(casados[1].jogadorId, 'y')
+  assert.equal(casados[2].jogadorId, null)
+})
+
 test('resumo do dinheiro conta o que já entrou e o que falta', () => {
   const jogo = {
     lista: ['a', 'b', 'c'],

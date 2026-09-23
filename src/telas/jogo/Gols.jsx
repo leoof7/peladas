@@ -1,12 +1,12 @@
 import Contador from '../../componentes/Contador.jsx'
 import { agora, gravar } from '../../dados/api.js'
-import { resultadoDoJogo } from '../../dados/regras.js'
+import { presentes, resultadoDoJogo } from '../../dados/regras.js'
 
 // Passo 3: placar, gols e assistências. Também é aqui que a diretoria aprova
 // o que os jogadores lançaram no celular deles.
 export default function Gols({ peladaId, pelada, jogo, jogadores, ehDiretoria, salvar, lancamentos }) {
   const ehMensal = pelada.cobranca === 'mensal'
-  const lista = jogo.lista || []
+  const lista = presentes(jogo)
   const times = jogo.times || []
   const gols = jogo.gols || {}
   const assistencias = jogo.assistencias || {}

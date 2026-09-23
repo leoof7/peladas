@@ -1,4 +1,4 @@
-import { dividirEmDois, montarTimes } from '../../dados/regras.js'
+import { dividirEmDois, montarTimes, presentes } from '../../dados/regras.js'
 
 const CURTO = { goleiro: 'GOL', defesa: 'DEF', meio: 'MEI', ataque: 'ATA' }
 
@@ -6,7 +6,7 @@ const CURTO = { goleiro: 'GOL', defesa: 'DEF', meio: 'MEI', ataque: 'ATA' }
 // na Shekinah o app sorteia (ou registra a tampinha também).
 export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) {
   const ehMensal = pelada.cobranca === 'mensal'
-  const lista = jogo.lista || []
+  const lista = presentes(jogo)
   const times = jogo.times || []
   const porId = (id) => jogadores.find((jogador) => jogador.id === id)
   const uniformes = pelada.config?.uniformes || []
@@ -79,7 +79,7 @@ export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) 
   }
 
   if (lista.length === 0) {
-    return <p className="ajuda">Antes marque quem chegou, no passo da chegada.</p>
+    return <p className="ajuda">Antes marque quem chegou, no primeiro passo.</p>
   }
 
   return (

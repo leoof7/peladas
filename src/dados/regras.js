@@ -29,6 +29,13 @@ export function resultadoDoJogo(jogo) {
   return { empate: false, vencedor, devedores: [vencedor === 0 ? 1 : 0] }
 }
 
+// Quem realmente jogou: os que chegaram. Jogo antigo, sem essa marcação,
+// continua valendo pela lista.
+export function presentes(jogo) {
+  if (!jogo) return []
+  return Array.isArray(jogo.chegaram) ? jogo.chegaram : jogo.lista || []
+}
+
 function ehIsento(jogadorId, jogadores) {
   return Boolean(jogadores.find((jogador) => jogador.id === jogadorId)?.isento)
 }
@@ -48,10 +55,10 @@ export function quemPaga(pelada, jogo, jogadores) {
       .map((jogadorId) => ({ jogadorId, valor }))
   }
 
-  const presentes = (jogo.lista || []).filter((jogadorId) => !ehIsento(jogadorId, jogadores))
+  const pagantes = presentes(jogo).filter((jogadorId) => !ehIsento(jogadorId, jogadores))
   const custo = Number(jogo.custo ?? pelada?.config?.valorAluguel ?? 0)
-  const { porPessoa } = dividir(custo, presentes.length)
-  return presentes.map((jogadorId) => ({ jogadorId, valor: porPessoa }))
+  const { porPessoa } = dividir(custo, pagantes.length)
+  return pagantes.map((jogadorId) => ({ jogadorId, valor: porPessoa }))
 }
 
 export function resumoDoDinheiroDoJogo(pelada, jogo, jogadores) {
@@ -121,7 +128,7 @@ export function estatisticasDoAno(jogos, jogadores, ano) {
   }
 
   for (const jogo of doAno) {
-    for (const jogadorId of jogo.lista || []) linha(jogadorId).jogos += 1
+    for (const jogadorId of presentes(jogo)) linha(jogadorId).jogos += 1
     for (const [jogadorId, gols] of Object.entries(jogo.gols || {})) linha(jogadorId).gols += Number(gols) || 0
     for (const [jogadorId, assistencias] of Object.entries(jogo.assistencias || {})) {
       linha(jogadorId).assistencias += Number(assistencias) || 0
@@ -186,12 +193,18 @@ export function casarNomes(nomes, jogadores) {
     )
     if (exato) return { lido, jogadorId: exato.id, certeza: 'exato' }
 
-    const comeca = ativos.find(
-      (jogador) => semAcento(jogador.nome).startsWith(alvo) || alvo.startsWith(semAcento(jogador.nome)),
+    const comeca = ativos.find((jogador) =>
+      [jogador.nome, jogador.apelido]
+        .filter(Boolean)
+        .some((texto) => semAcento(texto).startsWith(alvo) || alvo.startsWith(semAcento(texto))),
     )
     if (comeca) return { lido, jogadorId: comeca.id, certeza: 'parecido' }
 
-    const parte = ativos.find((jogador) => semAcento(jogador.nome).split(' ').includes(alvo))
+    const parte = ativos.find((jogador) =>
+      [jogador.nome, jogador.apelido]
+        .filter(Boolean)
+        .some((texto) => semAcento(texto).split(' ').includes(alvo)),
+    )
     if (parte) return { lido, jogadorId: parte.id, certeza: 'parecido' }
 
     return { lido, jogadorId: null, certeza: 'novo' }

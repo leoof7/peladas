@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Abas from '../componentes/Abas.jsx'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import { agora, gravar, novoId } from '../dados/api.js'
-import { resumoDoDinheiroDoJogo } from '../dados/regras.js'
+import { presentes, resumoDoDinheiroDoJogo } from '../dados/regras.js'
 import { useColecao } from '../dados/useColecao.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { anoDe, dataCurta, hoje, plural, proximoDomingo } from '../util/formato.js'
@@ -126,7 +126,7 @@ export default function Jogos({ peladaId, usuario }) {
                         {cancelado
                           ? 'cancelado'
                           : [
-                              plural((jogo.lista || []).length, 'jogou', 'jogaram'),
+                              plural(presentes(jogo).length, 'jogou', 'jogaram'),
                               placar,
                               resumo.falta > 0 ? `falta receber R$ ${resumo.falta.toFixed(2)}` : null,
                             ]

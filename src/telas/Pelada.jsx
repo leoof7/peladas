@@ -4,7 +4,7 @@ import AvisoModoTeste from '../componentes/AvisoModoTeste.jsx'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import { apagar, assinarDoc } from '../dados/api.js'
 import { esquecerPeladaDoCelular } from '../dados/pelada.js'
-import { emAbertoDoJogador, estatisticasDoAno, resultadoDoJogo } from '../dados/regras.js'
+import { emAbertoDoJogador, estatisticasDoAno, presentes, resultadoDoJogo } from '../dados/regras.js'
 import { useColecao, useDoc } from '../dados/useColecao.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { anoDe, dataCurta, dinheiro, hoje } from '../util/formato.js'
@@ -115,7 +115,7 @@ export default function Pelada({ peladaId, usuario }) {
               <span style={{ fontFamily: 'var(--titulo)', fontWeight: 800, fontSize: 28, textTransform: 'uppercase' }}>
                 {dataCurta(emAndamento.data)}
               </span>
-              <span className="lista__detalhe">{(emAndamento.lista || []).length} na lista</span>
+              <span className="lista__detalhe">{presentes(emAndamento).length} chegaram</span>
             </div>
             <button
               type="button"
@@ -155,7 +155,7 @@ export default function Pelada({ peladaId, usuario }) {
                 </p>
               </>
             ) : (
-              <p className="ajuda">{(ultimo.lista || []).length} jogaram.</p>
+              <p className="ajuda">{presentes(ultimo).length} jogaram.</p>
             )}
             <div style={{ display: 'flex', gap: 10 }}>
               <button
