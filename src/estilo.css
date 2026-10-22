@@ -635,3 +635,410 @@ textarea {
   font-size: 14px;
   line-height: 1.45;
 }
+
+/* ====================================================================
+   Estrelas, fotos e os dois jeitos de ver os jogadores (lista e cards)
+   ==================================================================== */
+
+:root {
+  --ouro: #e0a000;
+  --vazia: #d9d5cc;
+}
+
+.escondido {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.recado {
+  margin: 0 0 12px;
+  padding: 10px 13px;
+  border-radius: 12px;
+  background: var(--ok-fundo);
+  color: var(--ok);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.area-texto {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid var(--linha);
+  border-radius: 12px;
+  background: var(--chao);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* ---- as cinco estrelas ---- */
+
+.nota {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.nota__trilha {
+  display: inline-flex;
+  gap: 2px;
+  padding: 7px 2px;
+  /* sem isto, arrastar o dedo rola a página em vez de mudar a nota */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.nota__trilha[role='slider'] {
+  cursor: pointer;
+}
+
+.estrela {
+  position: relative;
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.estrela svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.estrela__fundo {
+  fill: var(--vazia);
+}
+
+.estrela__ouro {
+  fill: var(--ouro);
+}
+
+.nota--pequeno .estrela {
+  width: 19px;
+  height: 19px;
+}
+
+.nota__valor {
+  /* largura fixa: o número não pode empurrar as estrelas enquanto o dedo anda */
+  min-width: 30px;
+  font-variant-numeric: tabular-nums;
+  margin-left: 5px;
+  font-family: var(--titulo);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--suave);
+  text-align: right;
+}
+
+.nota__valor--vazio {
+  color: var(--linha);
+}
+
+.nota--pequeno .nota__valor {
+  font-size: 15px;
+  min-width: 16px;
+}
+
+/* ---- bolinha com a foto ---- */
+
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--areia);
+  color: var(--areia-tinta);
+  font-size: 13.5px;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar--grande {
+  width: 60px;
+  height: 60px;
+  font-size: 19px;
+}
+
+.avatar--gigante {
+  width: 104px;
+  height: 104px;
+  font-size: 32px;
+}
+
+.ficha-foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+/* ---- barra de cima ---- */
+
+.barra-de-jeitos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.alternador {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--linha-fina);
+  border: 1.5px solid var(--linha);
+}
+
+.alternador__item {
+  padding: 7px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.alternador__item--ativo {
+  background: var(--painel);
+  color: var(--tinta);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+/* ---- grupos por posição ---- */
+
+.grupo {
+  margin-top: 18px;
+}
+
+.grupo__titulo {
+  margin: 0 2px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+
+.grupo__titulo span {
+  color: var(--linha);
+}
+
+/* ---- jeito lista ---- */
+
+.quadro {
+  background: var(--painel);
+  border: 1px solid var(--linha);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.quadro__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 11px;
+  border-bottom: 1px solid var(--linha-fina);
+}
+
+.quadro__item:last-child {
+  border-bottom: 0;
+}
+
+.quadro__item--saiu {
+  opacity: 0.55;
+}
+
+.lista__pessoa {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.lista__nome-bloco {
+  min-width: 0;
+}
+
+.lista__nome-bloco strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lista__nome-bloco .lista__detalhe {
+  display: block;
+}
+
+.quadro__nota {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+}
+
+.mexeu {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--suave);
+  opacity: 0.75;
+  margin-top: -4px;
+}
+
+.botao-lapis {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--linha-fina);
+  color: var(--suave);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.nome-editavel {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--destaque);
+  border-radius: 12px;
+  background: var(--painel);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---- jeito cards ---- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 520px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  position: relative;
+  padding: 14px 10px 10px;
+  background: var(--painel);
+  border: 1px solid var(--linha);
+  border-radius: 16px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--linha);
+}
+
+.card--4::before {
+  background: var(--destaque);
+}
+
+.card--5::before {
+  background: linear-gradient(90deg, var(--ouro), #ffd97a);
+}
+
+.card--saiu {
+  opacity: 0.55;
+}
+
+.card__pessoa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.card__nome {
+  display: block;
+  width: 100%;
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card .nota {
+  margin-top: 4px;
+}
+
+/* ---- escolher a posição na ficha ---- */
+
+.opcoes--quatro {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 420px) {
+  .opcoes--quatro {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.opcoes--quatro .opcao {
+  padding: 14px 6px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.opcao--marcada {
+  border-color: var(--destaque);
+  background: var(--destaque);
+  color: #fff;
+}
+
+.fileira-de-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}

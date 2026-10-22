@@ -81,6 +81,30 @@ jogadores, sem ninguém precisar recarregar.
   - O valor por pessoa é arredondado só no centavo (ex.: R$ 180,00 ÷ 14 = R$ 12,86). A diferença de centavos aparece na tela.
   - **Recebe: Suan**, ou **Leandro** quando o Suan falta. A diretoria escolhe em cada pelada.
 
+## Estrelas dos jogadores (as duas peladas)
+
+- Cada jogador tem uma **nota de 0 a 5 estrelas**, que anda **de meia em meia**
+  (3, 3,5, 4...). A meia estrela existe porque, no grupo, "tem muita diferença
+  entre os caras de mesma estrela".
+- **Só a diretoria dá e muda a nota.** O participante vê as estrelas de todo
+  mundo, mas não mexe. A nota de cada um fica guardada com **quem mexeu por
+  último e quando** ("Rafa · 13:35"), que aparece embaixo da nota.
+- A nota muda **tocando na estrela ou arrastando o dedo** por cima delas. O
+  banco só é gravado quando o dedo descansa, pra não escrever a cada milímetro.
+- Cada jogador pode ter **foto**. A diretoria põe, troca ou tira a foto de
+  qualquer um. A foto é encolhida no próprio celular antes de ser guardada.
+- A tela mostra os jogadores em **lista** ou em **cards**, agrupados por posição
+  (goleiros, defensores, meio-campo, atacantes). Card de 4 estrelas e de 5
+  ganham uma faixa colorida no topo.
+- **Ordem:** por nome. O botão "Do melhor pro pior" reordena pela estrela, e a
+  ordem fica congelada até trocar de novo — se a lista se reorganizasse a cada
+  toque, o jogador fugiria debaixo do dedo.
+- O nome se corrige **tocando no nome**, ali mesmo na lista. O resto (apelido,
+  posição, foto, quem saiu, zerar PIN) fica na ficha, tocando na foto.
+- **"Copiar pro grupo"** gera o texto no formato que o grupo já usa, separado
+  por posição e com o ",5" da meia estrela.
+- As estrelas ainda **não** entram no sorteio dos times. É o próximo passo.
+
 ## Pix e cobrança
 
 - **Sem QR Code.** O app mostra a **chave Pix** de quem recebe, com botão de **copiar**.
@@ -103,8 +127,12 @@ jogadores, sem ninguém precisar recarregar.
 - Caixa: o que os jogadores pagaram entra sozinho; aluguel, bola e colete são
   lançados à mão.
 
+- Estrelas de 0 a 5, de meia em meia, com foto, lista ou cards e o texto
+  pronto pra colar no grupo.
+
 Ainda não existe: leitura de print ou foto da lista (por enquanto é colar o
-texto), foto do grupo e dos jogadores, e mandar resumo pro WhatsApp.
+texto), foto do grupo, times sorteados pelas estrelas e mandar resumo pro
+WhatsApp.
 
 ## Virada do ano
 
