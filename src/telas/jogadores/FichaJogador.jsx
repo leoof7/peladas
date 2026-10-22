@@ -15,11 +15,12 @@ const VAZIO = {
 
 // Ficha completa do jogador. O nome dá pra mudar direto na lista; aqui ficam o
 // resto das coisas: apelido, posição, foto, quem saiu e o PIN.
-export default function FichaJogador({ jogador, aoSalvar, aoZerarPin, aoFechar, erro }) {
+export default function FichaJogador({ jogador, aoSalvar, aoZerarPin, aoExcluir, aoFechar, erro }) {
   const [dados, definirDados] = useState({ ...VAZIO, ...(jogador || {}) })
   const [avisoDaFoto, definirAvisoDaFoto] = useState('')
   const [lendoFoto, definirLendoFoto] = useState(false)
   const [pinZerado, definirPinZerado] = useState(false)
+  const [confirmandoExclusao, definirConfirmandoExclusao] = useState(false)
   const escolhedor = useRef(null)
   const ehNovo = !jogador?.id
 
@@ -167,16 +168,54 @@ export default function FichaJogador({ jogador, aoSalvar, aoZerarPin, aoFechar, 
       </div>
 
       {!ehNovo && (
-        <button
-          type="button"
-          className="botao botao--pequeno"
-          onClick={async () => {
-            await aoZerarPin()
-            definirPinZerado(true)
-          }}
-        >
-          {pinZerado ? 'PIN zerado ✓' : 'Zerar PIN'}
-        </button>
+        <>
+          <button
+            type="button"
+            className="botao botao--pequeno"
+            onClick={async () => {
+              await aoZerarPin()
+              definirPinZerado(true)
+            }}
+          >
+            {pinZerado ? 'PIN zerado ✓' : 'Zerar PIN'}
+          </button>
+
+          {confirmandoExclusao ? (
+            <div className="cartao cartao--aviso">
+              <strong>Apagar o {dados.nome} de vez?</strong>
+              <p className="ajuda">
+                Some da lista e dos domingos antigos. Se ele já jogou, é melhor desmarcar
+                "Continua na pelada" ali em cima: o histórico fica guardado.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  type="button"
+                  className="botao"
+                  style={{ flex: 1 }}
+                  onClick={() => definirConfirmandoExclusao(false)}
+                >
+                  Deixa quieto
+                </button>
+                <button
+                  type="button"
+                  className="botao botao--perigo"
+                  style={{ flex: 1 }}
+                  onClick={aoExcluir}
+                >
+                  Apagar mesmo
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="botao botao--pequeno"
+              onClick={() => definirConfirmandoExclusao(true)}
+            >
+              Excluir jogador
+            </button>
+          )}
+        </>
       )}
     </form>
   )

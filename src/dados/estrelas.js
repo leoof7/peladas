@@ -35,6 +35,17 @@ export function estrelasEmTexto(nota) {
   return '⭐'.repeat(inteiras) + (temMeia ? ',5' : '')
 }
 
+// A faixa do card, no estilo das figurinhas de jogo: 1 e 2 dividem a mesma
+// cor, e daí pra cima cada estrela ganha a sua.
+export function faixaDaEstrela(nota) {
+  const valor = arredondar(nota)
+  if (valor === 0) return 'sem'
+  if (valor < 3) return 'bronze'
+  if (valor < 4) return 'prata'
+  if (valor < 5) return 'ouro'
+  return 'craque'
+}
+
 // Maior estrela primeiro; empatou, vai pela ordem do alfabeto.
 export function ordenarPorEstrela(jogadores) {
   return [...jogadores].sort(

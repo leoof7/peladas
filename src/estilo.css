@@ -688,8 +688,8 @@ textarea {
   display: inline-flex;
   gap: 2px;
   padding: 7px 2px;
-  /* sem isto, arrastar o dedo rola a página em vez de mudar a nota */
-  touch-action: none;
+  /* o dedo deitado muda a nota; rolar a tela e dar zoom continuam livres */
+  touch-action: pan-y pinch-zoom;
   -webkit-user-select: none;
   user-select: none;
 }
@@ -856,8 +856,8 @@ textarea {
 .quadro__item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px 6px 11px;
+  gap: 10px;
+  padding: 4px 10px 4px 8px;
   border-bottom: 1px solid var(--linha-fina);
 }
 
@@ -869,35 +869,43 @@ textarea {
   opacity: 0.55;
 }
 
-.lista__pessoa {
+.retrato {
+  flex: none;
+  display: block;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.quadro__nome {
   flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 6px 0;
+  display: block;
+  padding: 8px 0;
   border: 0;
   background: none;
   text-align: left;
-  cursor: pointer;
   color: inherit;
+  cursor: pointer;
 }
 
-.lista__nome-bloco {
-  min-width: 0;
-}
-
-.lista__nome-bloco strong {
+.quadro__nome strong {
   display: block;
   font-size: 15px;
   font-weight: 700;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.lista__nome-bloco .lista__detalhe {
+.quadro__nome .lista__detalhe {
   display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .quadro__nota {
@@ -913,25 +921,14 @@ textarea {
   font-weight: 600;
   color: var(--suave);
   opacity: 0.75;
-  margin-top: -4px;
-}
-
-.botao-lapis {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--linha-fina);
-  color: var(--suave);
-  font-size: 14px;
-  cursor: pointer;
+  margin-top: -5px;
+  white-space: nowrap;
 }
 
 .nome-editavel {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border: 2px solid var(--destaque);
   border-radius: 12px;
   background: var(--painel);
@@ -939,7 +936,7 @@ textarea {
   font-weight: 700;
 }
 
-/* ---- jeito cards ---- */
+/* ---- jeito cards: cada faixa de estrela tem a sua cor ---- */
 
 .cards {
   display: grid;
@@ -954,51 +951,82 @@ textarea {
 }
 
 .card {
+  --borda-do-card: var(--linha);
+  --fundo-do-card: var(--painel);
+  --tinta-do-card: var(--tinta);
+  --apagado-do-card: var(--suave);
   position: relative;
-  padding: 14px 10px 10px;
-  background: var(--painel);
-  border: 1px solid var(--linha);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 10px 9px;
+  background: var(--fundo-do-card);
+  border: 2px solid var(--borda-do-card);
   border-radius: 16px;
+  color: var(--tinta-do-card);
   text-align: center;
   overflow: hidden;
 }
 
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  background: var(--linha);
+.card--bronze {
+  --borda-do-card: #b47d4a;
+  --fundo-do-card: linear-gradient(165deg, #f6e3cf, #e3bb92);
+  --tinta-do-card: #4a2f16;
+  --apagado-do-card: #7b5632;
 }
 
-.card--4::before {
-  background: var(--destaque);
+.card--prata {
+  --borda-do-card: #9aa3ab;
+  --fundo-do-card: linear-gradient(165deg, #f4f6f7, #d3dade);
+  --tinta-do-card: #2c3338;
+  --apagado-do-card: #5d666d;
 }
 
-.card--5::before {
-  background: linear-gradient(90deg, var(--ouro), #ffd97a);
+.card--ouro {
+  --borda-do-card: #d19d10;
+  --fundo-do-card: linear-gradient(165deg, #fdeec0, #f3cc63);
+  --tinta-do-card: #4a3708;
+  --apagado-do-card: #7a5c12;
+}
+
+.card--craque {
+  --borda-do-card: #f0c050;
+  --fundo-do-card: linear-gradient(165deg, #1b2440, #0d1123 60%, #2a2140);
+  --tinta-do-card: #fdf3d6;
+  --apagado-do-card: #a79a72;
 }
 
 .card--saiu {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
-.card__pessoa {
+.card__canto {
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  color: inherit;
+  line-height: 1;
+  margin-bottom: -46px;
+}
+
+.card__nota {
+  font-family: var(--titulo);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.card__posicao {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--apagado-do-card);
 }
 
 .card__nome {
   display: block;
   width: 100%;
+  margin-top: 2px;
   font-size: 13.5px;
   font-weight: 800;
   white-space: nowrap;
@@ -1006,8 +1034,21 @@ textarea {
   text-overflow: ellipsis;
 }
 
-.card .nota {
-  margin-top: 4px;
+.card .mexeu {
+  color: var(--apagado-do-card);
+  opacity: 1;
+  margin-top: -2px;
+}
+
+.card--craque .estrela__fundo {
+  fill: rgb(255 255 255 / 22%);
+}
+
+.card--craque .nota__valor,
+.card--prata .nota__valor,
+.card--ouro .nota__valor,
+.card--bronze .nota__valor {
+  color: var(--apagado-do-card);
 }
 
 /* ---- escolher a posição na ficha ---- */

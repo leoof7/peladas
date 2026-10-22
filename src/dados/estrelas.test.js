@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   arredondar,
   estrelasEmTexto,
+  faixaDaEstrela,
   mediaDoGrupo,
   notaEmNumero,
   ordenarPorEstrela,
@@ -23,6 +24,17 @@ test('escreve a estrela do jeito que o grupo escreve', () => {
   assert.equal(estrelasEmTexto(2), '⭐⭐')
   assert.equal(estrelasEmTexto(0.5), '0,5')
   assert.equal(estrelasEmTexto(0), 'sem nota')
+})
+
+test('cada faixa de estrela tem a sua cor, menos 1 e 2 que dividem', () => {
+  assert.equal(faixaDaEstrela(0), 'sem')
+  assert.equal(faixaDaEstrela(1), 'bronze')
+  assert.equal(faixaDaEstrela(2.5), 'bronze')
+  assert.equal(faixaDaEstrela(3), 'prata')
+  assert.equal(faixaDaEstrela(3.5), 'prata')
+  assert.equal(faixaDaEstrela(4), 'ouro')
+  assert.equal(faixaDaEstrela(4.5), 'ouro')
+  assert.equal(faixaDaEstrela(5), 'craque')
 })
 
 test('mostra o número do jeito brasileiro', () => {

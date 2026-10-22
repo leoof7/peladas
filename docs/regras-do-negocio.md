@@ -94,16 +94,25 @@ jogadores, sem ninguém precisar recarregar.
 - Cada jogador pode ter **foto**. A diretoria põe, troca ou tira a foto de
   qualquer um. A foto é encolhida no próprio celular antes de ser guardada.
 - A tela mostra os jogadores em **lista** ou em **cards**, agrupados por posição
-  (goleiros, defensores, meio-campo, atacantes). Card de 4 estrelas e de 5
-  ganham uma faixa colorida no topo.
+  (goleiros, defensores, meio-campo, atacantes). O card muda de cor conforme a
+  estrela, como figurinha de jogo: sem nota é neutro, **1 e 2 são bronze**,
+  **3 é prata**, **4 é ouro** e **5 é craque** (fundo escuro, borda dourada).
+- **Excluir jogador** existe, com confirmação. Mas quem já jogou é melhor
+  **desativar** ("Continua na pelada" desmarcado): excluir some com o nome dos
+  domingos antigos.
 - **Ordem:** por nome. O botão "Do melhor pro pior" reordena pela estrela, e a
   ordem fica congelada até trocar de novo — se a lista se reorganizasse a cada
   toque, o jogador fugiria debaixo do dedo.
 - O nome se corrige **tocando no nome**, ali mesmo na lista. O resto (apelido,
-  posição, foto, quem saiu, zerar PIN) fica na ficha, tocando na foto.
+  posição, foto, quem saiu, zerar PIN, excluir) fica na ficha, **tocando na
+  foto**.
+- Dar zoom na tela com dois dedos **não** mexe nas notas.
 - **"Copiar pro grupo"** gera o texto no formato que o grupo já usa, separado
   por posição e com o ",5" da meia estrela.
-- As estrelas ainda **não** entram no sorteio dos times. É o próximo passo.
+- Por enquanto a nota é **uma só**, do último diretor que mexeu. O combinado é
+  cada diretor guardar a nota dele e o app mostrar a **média** — ainda não foi
+  feito.
+- As estrelas ainda **não** entram no sorteio dos times.
 
 ## Pix e cobrança
 

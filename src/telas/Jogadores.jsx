@@ -6,6 +6,7 @@ import { agora, apagar, gravar, novoId } from '../dados/api.js'
 import {
   POSICOES,
   daPosicao,
+  faixaDaEstrela,
   mediaDoGrupo,
   notaEmNumero,
   ordenarPorEstrela,
@@ -36,20 +37,38 @@ function quemMexeu(jogador) {
 // Estes dois ficam fora da tela de propósito: componente criado dentro do
 // render vira um componente novo a cada desenho, e o campo de texto perderia o
 // foco a cada letra digitada.
-function Pessoa({ jogador, grande, ehDiretoria, aoAbrirFicha }) {
+// A foto abre a ficha, o nome abre a correção do nome. Dois alvos separados,
+// sem lapisinho roubando a largura do nome.
+function Retrato({ jogador, tamanho, ehDiretoria, aoAbrirFicha }) {
+  const avatar = <Avatar nome={jogador.nome} foto={jogador.foto} tamanho={tamanho} />
+  if (!ehDiretoria) return avatar
+  return (
+    <button
+      type="button"
+      className="retrato"
+      onClick={aoAbrirFicha}
+      aria-label={`Ficha de ${jogador.nome}`}
+    >
+      {avatar}
+    </button>
+  )
+}
+
+function NomeDoJogador({ jogador, ehDiretoria, aoAbrirNome }) {
   const dentro = (
     <>
-      <Avatar nome={jogador.nome} foto={jogador.foto} tamanho={grande ? 'grande' : 'normal'} />
-      <span className={grande ? 'card__nome' : 'lista__nome-bloco'}>
-        <strong>{jogador.nome}</strong>
-        {!grande && <span className="lista__detalhe">{detalhesDoJogador(jogador)}</span>}
-      </span>
+      <strong>{jogador.nome}</strong>
+      <span className="lista__detalhe">{detalhesDoJogador(jogador)}</span>
     </>
   )
-  const classe = grande ? 'card__pessoa' : 'lista__pessoa'
-  if (!ehDiretoria) return <span className={classe}>{dentro}</span>
+  if (!ehDiretoria) return <span className="quadro__nome">{dentro}</span>
   return (
-    <button type="button" className={classe} onClick={aoAbrirFicha} title="Abrir a ficha">
+    <button
+      type="button"
+      className="quadro__nome"
+      onClick={aoAbrirNome}
+      aria-label={`Mudar o nome de ${jogador.nome}`}
+    >
       {dentro}
     </button>
   )
@@ -211,6 +230,18 @@ export default function Jogadores({ peladaId, usuario }) {
     }
   }
 
+  async function excluirJogador(jogador) {
+    try {
+      await apagar(`peladas/${peladaId}/jogadores/${jogador.id}`)
+      await apagar(`peladas/${peladaId}/pins/${jogador.id}`).catch(() => {})
+      definirFicha(null)
+      definirErro('')
+      avisar(`${jogador.nome} foi apagado.`)
+    } catch {
+      definirErro('Não consegui apagar. Só a diretoria exclui jogador.')
+    }
+  }
+
   async function zerarPin(jogador) {
     try {
       await apagar(`peladas/${peladaId}/pins/${jogador.id}`)
@@ -321,6 +352,7 @@ export default function Jogadores({ peladaId, usuario }) {
             erro={erro}
             aoSalvar={salvarFicha}
             aoZerarPin={() => zerarPin(ficha)}
+            aoExcluir={() => excluirJogador(ficha)}
             aoFechar={() => definirFicha(null)}
           />
         )}
@@ -382,6 +414,12 @@ export default function Jogadores({ peladaId, usuario }) {
                             key={jogador.id}
                             className={`quadro__item${jogador.ativo === false ? ' quadro__item--saiu' : ''}`}
                           >
+                            <Retrato
+                              jogador={jogador}
+                              tamanho="normal"
+                              ehDiretoria={ehDiretoria}
+                              aoAbrirFicha={() => definirFicha(jogador)}
+                            />
                             {editandoNome === jogador.id ? (
                               <NomeEditavel
                                 jogador={jogador}
@@ -391,23 +429,11 @@ export default function Jogadores({ peladaId, usuario }) {
                                 aoCancelar={() => definirEditandoNome(null)}
                               />
                             ) : (
-                              <>
-                                <Pessoa
-                                  jogador={jogador}
-                                  ehDiretoria={ehDiretoria}
-                                  aoAbrirFicha={() => definirFicha(jogador)}
-                                />
-                                {ehDiretoria && (
-                                  <button
-                                    type="button"
-                                    className="botao-lapis"
-                                    onClick={() => abrirNome(jogador)}
-                                    aria-label={`Mudar o nome de ${jogador.nome}`}
-                                  >
-                                    ✎
-                                  </button>
-                                )}
-                              </>
+                              <NomeDoJogador
+                                jogador={jogador}
+                                ehDiretoria={ehDiretoria}
+                                aoAbrirNome={() => abrirNome(jogador)}
+                              />
                             )}
                             <span className="quadro__nota">
                               <Nota
@@ -426,16 +452,23 @@ export default function Jogadores({ peladaId, usuario }) {
                         {doGrupo.map((jogador) => (
                           <div
                             key={jogador.id}
-                            className={`card card--${Math.ceil(jogador.estrelas || 0)}${
+                            className={`card card--${faixaDaEstrela(jogador.estrelas)}${
                               jogador.ativo === false ? ' card--saiu' : ''
                             }`}
                           >
-                            <Pessoa
+                            <span className="card__canto">
+                              <span className="card__nota">
+                                {jogador.estrelas ? notaEmNumero(jogador.estrelas) : '–'}
+                              </span>
+                              <span className="card__posicao">{posicao.curto}</span>
+                            </span>
+                            <Retrato
                               jogador={jogador}
-                              grande
+                              tamanho="grande"
                               ehDiretoria={ehDiretoria}
                               aoAbrirFicha={() => definirFicha(jogador)}
                             />
+                            <span className="card__nome">{jogador.nome}</span>
                             <Nota
                               valor={jogador.estrelas}
                               aoMudar={(nota) => mudarNota(jogador, nota)}

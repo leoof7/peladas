@@ -45,8 +45,20 @@ export default function Nota({ valor, aoMudar, rotulo, tamanho = 'normal', somen
     if (novaNota !== nota) aoMudar(novaNota)
   }
 
+  function pararArrasto() {
+    definirArrastando(false)
+    areaDoArrasto.current = null
+  }
+
+  // Dois dedos na tela é pinça de zoom, não é nota. Sem isto, fechar o zoom
+  // passando os dedos por cima da lista mudava as estrelas de todo mundo.
+  function aoEncostarComDoisDedos(evento) {
+    if (evento.touches.length > 1) pararArrasto()
+  }
+
   function aoEncostar(evento) {
     if (evento.button !== undefined && evento.button !== 0) return
+    if (evento.isPrimary === false) return
     // Sem isto, arrastar o dedo sai selecionando o texto em volta.
     evento.preventDefault()
     areaDoArrasto.current = evento.currentTarget.getBoundingClientRect()
@@ -62,14 +74,13 @@ export default function Nota({ valor, aoMudar, rotulo, tamanho = 'normal', somen
   }
 
   function aoArrastar(evento) {
-    if (!arrastando) return
+    if (!arrastando || evento.isPrimary === false) return
     mudar(notaOndeEstaODedo(evento.clientX))
   }
 
   function aoSoltar(evento) {
     if (!arrastando) return
-    definirArrastando(false)
-    areaDoArrasto.current = null
+    pararArrasto()
     try {
       evento.currentTarget.releasePointerCapture(evento.pointerId)
     } catch {
@@ -109,6 +120,7 @@ export default function Nota({ valor, aoMudar, rotulo, tamanho = 'normal', somen
         onPointerMove={somenteLeitura ? undefined : aoArrastar}
         onPointerUp={somenteLeitura ? undefined : aoSoltar}
         onPointerCancel={somenteLeitura ? undefined : aoSoltar}
+        onTouchStart={somenteLeitura ? undefined : aoEncostarComDoisDedos}
         onKeyDown={somenteLeitura ? undefined : aoTeclar}
       >
         {ESTRELAS.map((posicao) => (
