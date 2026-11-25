@@ -51,10 +51,12 @@ São duas coisas diferentes:
   A diretoria confere os nomes antes de salvar. O nome lido do grupo casa pelo nome **ou pelo apelido**.
 - **Chegou** é quem apareceu de verdade, na ordem em que chegou. Só quem chegou entra em time,
   conta presença e entra na conta do dinheiro.
-- A tela mostra um **medidor** (quantos chegaram, quantas vagas) e duas colunas:
-  **quem joga** e **quem espera** — na Madrugada, quem passou dos 22 e entra no
-  2º tempo; na Shekinah, quem passou do limite de vagas. Tocar em quem chegou
-  abre as ações de mudar a ordem ou tirar.
+- A tela de chegada tem três blocos, um embaixo do outro, nesta ordem:
+  **medidor** (quantos chegaram, quantas vagas), **Chegaram** (na ordem de
+  chegada, numerado), **Espera** quando alguém passa do limite (2º tempo na
+  Madrugada) e **Lista da pelada**, que é quem disse que vem e ainda não
+  apareceu. Cada um da lista tem o botão **Chegou** ali do lado.
+- Tocar em quem chegou abre as ações de mudar a ordem ou tirar.
 
 Tudo isso é **ao vivo**: o que a diretoria muda aparece na hora pros outros diretores e pros
 jogadores, sem ninguém precisar recarregar.

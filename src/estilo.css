@@ -58,6 +58,9 @@ textarea {
 
 .app {
   min-height: 100vh;
+  /* trava: nenhuma tela pode ficar mais larga que o celular */
+  max-width: 100%;
+  overflow-x: clip;
   max-width: 560px;
   margin: 0 auto;
   display: flex;
@@ -940,13 +943,13 @@ textarea {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 @media (min-width: 520px) {
   .cards {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1055,13 +1058,13 @@ textarea {
 
 .opcoes--quatro {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 @media (min-width: 420px) {
   .opcoes--quatro {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -1384,7 +1387,7 @@ textarea {
 
 .tabuleiro {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
   margin-bottom: 12px;
 }
@@ -1468,7 +1471,7 @@ textarea {
 
 .fora-pecas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1542,19 +1545,6 @@ textarea {
   flex: none;
 }
 
-.chegada-colunas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin-bottom: 10px;
-}
-
-@media (max-width: 339px) {
-  .chegada-colunas {
-    grid-template-columns: 1fr;
-  }
-}
-
 .caixa-chegada {
   background: var(--painel);
   border: 1px solid var(--linha);
@@ -1565,6 +1555,16 @@ textarea {
 .caixa-chegada--espera {
   background: #fff8ee;
   border-color: #f0ddbf;
+}
+
+.caixa-chegada--lista {
+  border-style: dashed;
+}
+
+.caixa-chegada .titulo-secao .lista__detalhe {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .caixa-chegada .titulo-secao {
@@ -1582,8 +1582,19 @@ textarea {
 .chegada__pessoa--so-lista {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 0;
+  gap: 7px;
+  padding: 6px 0;
+}
+
+.chegada__pessoa--so-lista .chegada__nome {
+  font-weight: 600;
+}
+
+.botao--tirar {
+  flex: none;
+  width: 34px;
+  padding: 6px 0;
+  color: var(--suave);
 }
 
 .chegada__toque {
@@ -1610,9 +1621,9 @@ textarea {
 
 .chegada__ordem {
   flex: none;
-  width: 19px;
+  width: 22px;
   font-family: var(--titulo);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
   text-align: right;
   color: var(--suave);
@@ -1625,7 +1636,7 @@ textarea {
 .chegada__nome {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -1646,9 +1657,14 @@ textarea {
 }
 
 .botao--chegou {
+  flex: none;
   background: var(--destaque);
   color: #fff;
   border: 0;
+}
+
+.caixa-chegada + .caixa-chegada {
+  margin-top: -2px;
 }
 
 /* ====================================================================
@@ -1787,4 +1803,33 @@ textarea {
     height: var(--alto);
     opacity: 1;
   }
+}
+
+/* ====================================================================
+   Nada pode ficar mais largo que a tela do celular
+   ==================================================================== */
+
+/* Campo dentro de uma fileira precisa poder encolher: sem isto, um input de
+   data (que tem largura própria) empurra a página inteira pra fora da tela. */
+.campo {
+  min-width: 0;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+textarea {
+  max-width: 100%;
 }

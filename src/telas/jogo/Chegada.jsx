@@ -195,67 +195,80 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
           <i style={{ width: porcento(espera.length), background: 'var(--ouro)' }} />
         </div>
         <div className="medidor__legenda">
-          <span><i className="ponto" style={{ background: 'var(--destaque)' }} />{jogam.length} jogam</span>
+          <span><i className="ponto" style={{ background: 'var(--destaque)' }} />{jogam.length} {ehMensal ? 'jogam' : 'na quadra'}</span>
           {espera.length > 0 && (
             <span><i className="ponto" style={{ background: 'var(--ouro)' }} />{espera.length} {ehMensal ? 'no 2º tempo' : 'na espera'}</span>
           )}
-          {naLista.length > 0 && (
-            <span><i className="ponto" style={{ background: 'var(--linha)' }} />{naLista.length} só na lista</span>
-          )}
+          <span><i className="ponto" style={{ background: 'var(--linha)' }} />{naLista.length} na lista, sem chegar</span>
         </div>
       </section>
 
-      <div className="chegada-colunas">
-        <section className="caixa-chegada">
-          <h2 className="titulo-secao">{ehMensal ? 'Jogam' : 'Na quadra'} · {jogam.length}</h2>
-          {jogam.length === 0 ? (
-            <p className="ajuda">Ninguém chegou ainda.</p>
-          ) : (
-            jogam.map((jogadorId, indice) => pessoa(jogadorId, indice, false))
-          )}
-        </section>
+      <section className="caixa-chegada">
+        <h2 className="titulo-secao">
+          Chegaram · {chegaram.length}
+          <span className="lista__detalhe"> por ordem de chegada</span>
+        </h2>
+        {chegaram.length === 0 ? (
+          <p className="ajuda">Ninguém chegou ainda. Marque na lista aqui embaixo quem for aparecendo.</p>
+        ) : (
+          jogam.map((jogadorId, indice) => pessoa(jogadorId, indice, false))
+        )}
+      </section>
 
-        <section className={`caixa-chegada${espera.length ? ' caixa-chegada--espera' : ''}`}>
-          <h2 className="titulo-secao">{ehMensal ? '2º tempo' : 'Espera'} · {espera.length}</h2>
-          {espera.length === 0 ? (
-            <p className="ajuda">
-              {ehMensal ? `Até ${limite} ninguém espera.` : `Ainda tem ${Math.max(0, limite - chegaram.length)} vaga(s).`}
-            </p>
-          ) : (
-            espera.map((jogadorId, indice) => pessoa(jogadorId, limite + indice, true))
-          )}
-
-          {naLista.length > 0 && (
-            <>
-              <h2 className="titulo-secao" style={{ marginTop: 12 }}>Disseram que vêm · {naLista.length}</h2>
-              {naLista.map((jogadorId) => (
-                <div key={jogadorId} className="chegada__pessoa chegada__pessoa--so-lista">
-                  <Avatar nome={porId(jogadorId)?.nome} foto={porId(jogadorId)?.foto} tamanho="mini" />
-                  <span className="chegada__nome">{nomeDe(jogadorId)}</span>
-                  {ehDiretoria && (
-                    <>
-                      <button type="button" className="botao botao--pequeno botao--chegou" onClick={() => alternarChegada(jogadorId)}>
-                        Chegou
-                      </button>
-                      <button
-                        type="button"
-                        className="botao botao--pequeno"
-                        aria-label={`Tirar ${nomeDe(jogadorId)} da lista`}
-                        onClick={() => tirarDaLista(jogadorId)}
-                      >
-                        ✕
-                      </button>
-                    </>
-                  )}
-                </div>
-              ))}
-            </>
-          )}
+      {espera.length > 0 && (
+        <section className="caixa-chegada caixa-chegada--espera">
+          <h2 className="titulo-secao">
+            {ehMensal ? '2º tempo' : 'Espera'} · {espera.length}
+            <span className="lista__detalhe">
+              {ehMensal ? ' passaram dos ' + limite : ' passaram das vagas'}
+            </span>
+          </h2>
+          {espera.map((jogadorId, indice) => pessoa(jogadorId, limite + indice, true))}
         </section>
-      </div>
+      )}
+
+      <section className="caixa-chegada caixa-chegada--lista">
+        <h2 className="titulo-secao">
+          Lista da pelada · {naLista.length}
+          <span className="lista__detalhe"> disseram que vêm</span>
+        </h2>
+        {naLista.length === 0 ? (
+          <p className="ajuda">
+            {lista.length === 0
+              ? 'A lista está vazia. Cole a lista do grupo ou puxe dos cadastrados aqui embaixo.'
+              : 'Todo mundo da lista já chegou.'}
+          </p>
+        ) : (
+          naLista.map((jogadorId) => (
+            <div key={jogadorId} className="chegada__pessoa chegada__pessoa--so-lista">
+              <Avatar nome={porId(jogadorId)?.nome} foto={porId(jogadorId)?.foto} tamanho="mini" />
+              <span className="chegada__nome">{nomeDe(jogadorId)}</span>
+              {ehDiretoria && (
+                <>
+                  <button
+                    type="button"
+                    className="botao botao--pequeno botao--chegou"
+                    onClick={() => alternarChegada(jogadorId)}
+                  >
+                    Chegou
+                  </button>
+                  <button
+                    type="button"
+                    className="botao botao--pequeno botao--tirar"
+                    aria-label={`Tirar ${nomeDe(jogadorId)} da lista`}
+                    onClick={() => tirarDaLista(jogadorId)}
+                  >
+                    ✕
+                  </button>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </section>
 
       <p className="ajuda centro">
-        A lista é quem disse que vem. Chegou é quem apareceu.{' '}
+        A lista é quem disse que vem. Chegaram é quem apareceu.{' '}
         {ehDiretoria && 'Toque em quem chegou pra mudar a ordem ou tirar.'}
       </p>
 
