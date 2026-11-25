@@ -51,6 +51,10 @@ São duas coisas diferentes:
   A diretoria confere os nomes antes de salvar. O nome lido do grupo casa pelo nome **ou pelo apelido**.
 - **Chegou** é quem apareceu de verdade, na ordem em que chegou. Só quem chegou entra em time,
   conta presença e entra na conta do dinheiro.
+- A tela mostra um **medidor** (quantos chegaram, quantas vagas) e duas colunas:
+  **quem joga** e **quem espera** — na Madrugada, quem passou dos 22 e entra no
+  2º tempo; na Shekinah, quem passou do limite de vagas. Tocar em quem chegou
+  abre as ações de mudar a ordem ou tirar.
 
 Tudo isso é **ao vivo**: o que a diretoria muda aparece na hora pros outros diretores e pros
 jogadores, sem ninguém precisar recarregar.
@@ -109,10 +113,28 @@ jogadores, sem ninguém precisar recarregar.
 - Dar zoom na tela com dois dedos **não** mexe nas notas.
 - **"Copiar pro grupo"** gera o texto no formato que o grupo já usa, separado
   por posição e com o ",5" da meia estrela.
+- O **ranking** abre com o pódio dos três primeiros, com foto, gols e assistências.
 - Por enquanto a nota é **uma só**, do último diretor que mexeu. O combinado é
   cada diretor guardar a nota dele e o app mostrar a **média** — ainda não foi
   feito.
-- As estrelas ainda **não** entram no sorteio dos times.
+- As estrelas **entram no sorteio dos times** (veja a seção de tirar os times).
+
+## Tirar os times (as duas peladas)
+
+- O **goleiro não entra no sorteio**. Ele aparece numa faixa à parte e a
+  diretoria escolhe o time dele, ou deixa fora. Sorteia-se **só a linha**.
+- O sorteio divide a linha em dois times do mesmo tamanho, deixando a **soma
+  das estrelas** o mais perto possível entre os dois lados. A tela mostra a
+  soma de cada time e a diferença.
+- **"Tirar de novo"** dá um resultado diferente a cada toque: entre as divisões
+  igualmente equilibradas, o app sorteia outra. Meia estrela de diferença já é
+  considerada empate.
+- Quem está **sem nota** entra na conta com a média do grupo, só para o sorteio.
+- Para corrigir à mão: toca-se em dois jogadores de **lados diferentes** e eles
+  trocam de time. Assim os times nunca ficam com tamanhos diferentes.
+- Quem passa do tamanho do time fica **de fora** (2º tempo na Madrugada,
+  rodízio na Shekinah).
+- A tampinha continua valendo: "Por chegada" monta os times na ordem de chegada.
 
 ## Pix e cobrança
 

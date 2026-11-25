@@ -1,59 +1,44 @@
-# Continuar daqui — estrelas, cards e o que falta
+# Continuar daqui
 
-Atualizado em 22/10/2026. Este arquivo é feito pra outra pessoa (ou outra IA)
-pegar o trabalho sem ter o histórico da conversa. Leia junto com
-`docs/regras-do-negocio.md`, que é onde moram as regras do negócio.
+Atualizado em 25/11/2026. Feito pra outra pessoa (ou outra IA) pegar o trabalho
+sem ter o histórico da conversa. Leia junto com `docs/regras-do-negocio.md`.
 
 ## Onde o projeto está
 
-App em React + Vite, sem TypeScript, banco no Firebase (projeto `futebois`,
-região `southamerica-east1`), publicado em https://leoof7.github.io/peladas/
-com `npm run publicar`. Duas peladas de verdade no banco: **Pelada da
-Madrugada** (campo, mensal) e **Shekinah Futebol Clube** (quadra, rateio).
+React + Vite, sem TypeScript, banco no Firebase (projeto `futebois`, região
+`southamerica-east1`), publicado em https://leoof7.github.io/peladas/ com
+`npm run publicar`. Duas peladas de verdade: **Pelada da Madrugada** (campo,
+mensal) e **Shekinah Futebol Clube** (quadra, rateio).
 
 O dono é o **Leandro**, que não é programador. Ele decide o produto; quem
-escreve o código decide o como e precisa avisar, em português claro, quando o
-pedido tem risco. As preferências dele estão em `C:\Users\SETTE\.claude\CLAUDE.md`.
+escreve o código decide o como e avisa, em português claro, quando o pedido tem
+risco. As preferências dele ficam em `C:\Users\SETTE\.claude\CLAUDE.md`.
 
-## O que foi feito nesta rodada
+## Feito nesta rodada (25/11)
 
-A antiga aba **Jogadores** virou a tela das estrelas, usando os jogadores que
-já estavam cadastrados. Não houve migração: quem já existia continua lá, só
-sem nota até alguém dar.
+- **Sorteio sem goleiro**: `separarGoleiros`, `sortearDoisTimes` e
+  `sortearTimes` em `src/dados/regras.js`, com 5 testes. O goleiro fica fora e
+  a diretoria escolhe o time dele; só a linha é dividida, aproximando a soma
+  das estrelas; "Tirar de novo" varia de verdade porque o sorteio aceita
+  qualquer divisão com até meia estrela de diferença.
+- **`src/telas/jogo/Times.jsx` refeita**: painel com a soma dos dois times e a
+  diferença, faixa de goleiros, tabuleiro em duas colunas e troca de dois
+  jogadores por toque.
+- **`src/telas/jogo/Chegada.jsx` refeita**: medidor com vagas, duas colunas
+  (quem joga x quem espera) e ações ao tocar em quem chegou.
+- **`src/componentes/Podio.jsx`**: pódio dos três primeiros no ranking, com os
+  degraus subindo (respeita `prefers-reduced-motion`).
+- **Lista da Shekinah ajustada no banco** conforme a lista que o Leandro mandou
+  do grupo: 40 jogadores ativos, 38 com nota.
+- **Nomes limpos**: vários jogadores tinham um caractere invisível do WhatsApp
+  colado no nome, o que criava gente duplicada. Foram limpos; quem saiu e
+  colidia com um ativo ganhou " (saiu)" no nome.
 
-| Arquivo | O que faz |
-|---|---|
-| `src/dados/estrelas.js` | posições, arredondar de meia em meia, média, faixa de cor do card, ordenação e o texto pra colar no grupo |
-| `src/dados/estrelas.test.js` | 8 testes dessa lógica (de 27 do projeto) |
-| `src/componentes/Nota.jsx` | as cinco estrelas: toque e arrasto, de meia em meia |
-| `src/componentes/Avatar.jsx` | bolinha com foto ou iniciais |
-| `src/util/foto.js` | encolhe a foto pra 240px quadrados e corrige foto deitada |
-| `src/telas/Jogadores.jsx` | lista e cards, grupos por posição, nome editável, excluir, copiar pro grupo |
-| `src/telas/jogadores/FichaJogador.jsx` | apelido, posição, foto, isento, quem saiu, zerar PIN, excluir |
-
-Campos novos no documento do jogador: `estrelas`, `estrelasPor`, `estrelasEm`
-e `foto` (imagem em texto, data URL).
-
-`firestore.rules` **não mudou**: a coleção `jogadores` já era lida por quem
-está na pelada e escrita só pela diretoria — exatamente a regra pedida.
-
-### Correções da segunda leva
-
-- **Excluir jogador** passou a existir, com confirmação em dois toques e aviso
-  de que, pra quem já jogou, é melhor desmarcar "Continua na pelada".
-- **Zoom estragava as notas**: fechar a pinça passando os dedos pela lista
-  mudava a estrela de todo mundo. Agora a trilha usa
-  `touch-action: pan-y pinch-zoom`, ignora ponteiros não primários e cancela o
-  arrasto quando aparece um segundo dedo.
-- **Lista mais enxuta**: a foto abre a ficha, o nome abre a correção do nome, e
-  o lapisinho saiu — era ele que espremia o nome e causava "Guilherme A...".
-- **Cards por faixa de cor**, no espírito das figurinhas de jogo:
-  sem nota = neutro, 1 e 2 = bronze, 3 = prata, 4 = ouro, 5 = craque (fundo
-  escuro com borda dourada). A regra está em `faixaDaEstrela()`, com teste.
+## O que falta
 
 ## O que o Leandro pediu e ainda NÃO foi feito
 
-### 1. Nota por diretor, com média (é o mais importante)
+### 1. Nota por diretor, com média (o mais importante, e já aprovado)
 
 Hoje a nota é **uma só**: o último diretor que mexeu sobrescreve o anterior, e
 fica registrado quem foi. O Leandro quer que **cada diretor guarde a nota
@@ -104,27 +89,20 @@ Duas coisas:
   ficar dentro** do botão que abre a cartinha. Deixe o botão só na foto e no
   nome, com a nota fora dele.
 
-### 3. Times sorteados pelas estrelas
-
-Era o motivo original das notas. A ideia combinada: equilibrar os dois times
-pela **soma das estrelas**, sem separar os goleiros fixos. Mexe em
-`src/dados/regras.js` (`montarTimes`, `dividirEmDois`) e em
-`src/telas/jogo/Times.jsx`.
-
-### 4. Importar as estrelas que o grupo já tem
+### 3. Importar as estrelas que o grupo já tem
 
 O Leandro quer trazer as notas da Shekinah que estão no WhatsApp. O caminho é
 colar o texto do grupo e casar os nomes, reaproveitando `lerNomesColados` e
 `casarNomes` de `src/dados/regras.js`, que já casam por nome **e por apelido**.
 O formato do grupo é `Suan⭐⭐⭐` e `Tio du⭐⭐⭐,5`.
 
-### 5. Etapa 4, que já estava pendente de antes
+### 4. Etapa 4, que já estava pendente de antes
 
 Ler a lista de um print ou de uma foto do papel, foto do grupo e mandar resumo
 pro WhatsApp. Depende de o Leandro mandar uma foto da lista de papel da
 Madrugada, pra saber se a leitura de letra à mão é viável antes de prometer.
 
-### 6. Privacidade do financeiro (dívida antiga, ele sabe)
+### 5. Privacidade do financeiro (dívida antiga, ele sabe)
 
 Um participante curioso, com as ferramentas de desenvolvedor do navegador,
 consegue ler o pagamento dos outros, porque mensalidades e dias de jogo são
@@ -145,6 +123,9 @@ jogador. Não é urgente, mas não pode ser esquecido.
 - **A barra das estrelas é medida uma vez**, no momento em que o dedo encosta
   (`areaDoArrasto` em `Nota.jsx`). Medir a cada movimento fazia as estrelas
   andarem debaixo do dedo.
+- **A soma de um time passa de 5**, então ela não pode ser formatada com
+  `notaEmNumero()`, que para em 5 por ser a nota de um jogador. Em `Times.jsx`
+  existe um `emNumero()` só pra isso.
 - **Limpe as peladas de teste do banco** quando terminar:
   `npx.cmd --yes firebase-tools firestore:delete "peladas/<id>" --recursive --force --project futebois`
 
