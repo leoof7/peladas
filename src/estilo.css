@@ -1209,3 +1209,582 @@ textarea {
 .botao { overflow-wrap: anywhere; }
 .busca-jogadores { margin: 2px 0; }
 .cabecalho__voltar { min-height: 44px; min-width: 44px; }
+
+/* ====================================================================
+   Tirar time: painel do sorteio, goleiros à parte e o tabuleiro
+   ==================================================================== */
+
+.avatar--mini {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+}
+
+.sorteio {
+  background: linear-gradient(160deg, #11141a, #1d2b4d);
+  border-radius: 16px;
+  padding: 14px 13px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+.sorteio__titulo {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #8fa6d6;
+}
+
+.sorteio__ajuda {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #b9c8e8;
+}
+
+.duelo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.duelo__time {
+  flex: 1;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 12px;
+  padding: 9px 6px;
+  text-align: center;
+}
+
+.duelo__nome {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 800;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.duelo__soma {
+  display: block;
+  font-family: var(--titulo);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.duelo__quanto {
+  display: block;
+  font-size: 10.5px;
+  opacity: 0.7;
+}
+
+.duelo__meio {
+  text-align: center;
+  flex: none;
+}
+
+.duelo__rotulo {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  color: #8fa6d6;
+}
+
+.duelo__dif {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffd27a;
+}
+
+.duelo__dif--ok {
+  color: #8fe0a8;
+}
+
+.sorteio__botoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.sorteio__botoes .botao {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 8px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.botao--claro {
+  background: #fff;
+  color: #11141a;
+  border: 0;
+  font-weight: 800;
+}
+
+.botao--fantasma {
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+  border: 0;
+  font-weight: 800;
+}
+
+/* ---- goleiros ---- */
+
+.cartao--goleiros {
+  background: #fff8ee;
+  border-color: #f0ddbf;
+}
+
+.gol-linha {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  flex-wrap: wrap;
+}
+
+.gol-linha__nome {
+  flex: 1;
+  min-width: 90px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.gol-linha__opcoes {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.op {
+  padding: 7px 12px;
+  border: 1.5px solid #e4d3b4;
+  border-radius: 999px;
+  background: #fff;
+  color: #8a5a00;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 34px;
+}
+
+.op--marcada {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: #fff;
+}
+
+/* ---- tabuleiro dos times ---- */
+
+.tabuleiro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.coluna-time {
+  background: var(--painel);
+  border: 1px solid var(--linha);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.coluna-time header {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.coluna-time__corpo {
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.peca {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 7px;
+  border: 2px solid transparent;
+  border-radius: 11px;
+  background: var(--chao);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.peca:disabled {
+  cursor: default;
+}
+
+.peca--escolhida {
+  border-color: var(--destaque);
+  background: var(--areia);
+}
+
+.peca--goleiro {
+  background: #fff3df;
+  cursor: default;
+}
+
+.peca__nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peca__estrela {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ouro);
+}
+
+.peca--goleiro .peca__estrela {
+  color: #8a5a00;
+}
+
+.cartao--fora {
+  border-style: dashed;
+}
+
+.fora-pecas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+/* ====================================================================
+   Chegada: medidor, quem joga e quem espera
+   ==================================================================== */
+
+.medidor {
+  background: var(--painel);
+  border: 1px solid var(--linha);
+  border-radius: 16px;
+  padding: 13px 14px;
+  margin-bottom: 11px;
+}
+
+.medidor__topo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.medidor__grande {
+  font-family: var(--titulo);
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.medidor__de {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--suave);
+}
+
+.medidor__barra {
+  display: flex;
+  height: 9px;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: var(--linha-fina);
+  overflow: hidden;
+}
+
+.medidor__barra i {
+  display: block;
+  height: 100%;
+}
+
+.medidor__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--suave);
+}
+
+.medidor__legenda span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ponto {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: block;
+  flex: none;
+}
+
+.chegada-colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 339px) {
+  .chegada-colunas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.caixa-chegada {
+  background: var(--painel);
+  border: 1px solid var(--linha);
+  border-radius: 15px;
+  padding: 11px 10px;
+}
+
+.caixa-chegada--espera {
+  background: #fff8ee;
+  border-color: #f0ddbf;
+}
+
+.caixa-chegada .titulo-secao {
+  margin-bottom: 7px;
+}
+
+.chegada__pessoa {
+  border-bottom: 1px solid var(--linha-fina);
+}
+
+.chegada__pessoa:last-child {
+  border-bottom: 0;
+}
+
+.chegada__pessoa--so-lista {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 0;
+}
+
+.chegada__toque {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chegada__toque:disabled {
+  cursor: default;
+}
+
+.chegada__toque--aberto {
+  background: var(--areia);
+  border-radius: 10px;
+}
+
+.chegada__ordem {
+  flex: none;
+  width: 19px;
+  font-family: var(--titulo);
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+  color: var(--suave);
+}
+
+.chegada__ordem--espera {
+  color: #8a5a00;
+}
+
+.chegada__nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chegada__acoes {
+  display: flex;
+  gap: 5px;
+  padding: 0 0 7px 24px;
+}
+
+.chegada__acoes .botao {
+  flex: 1;
+  padding: 6px 4px;
+  min-height: 32px;
+  font-size: 11.5px;
+}
+
+.botao--chegou {
+  background: var(--destaque);
+  color: #fff;
+  border: 0;
+}
+
+/* ====================================================================
+   Pódio do ranking: os três primeiros, com os degraus subindo
+   ==================================================================== */
+
+.podio {
+  background: linear-gradient(170deg, #11141a, #1b2742 60%, #10203f);
+  border-radius: 18px;
+  padding: 16px 12px 0;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.podio__degraus {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 7px;
+}
+
+.podio__lugar {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  color: #fff;
+}
+
+.podio__foto {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.podio__foto .avatar {
+  border: 3px solid #c3cbd6;
+  background: #2f3540;
+  color: #e8edf5;
+}
+
+.podio__lugar--1 .avatar {
+  border-color: #f3c743;
+  background: #4a3c10;
+  color: #ffe9a8;
+}
+
+.podio__lugar--3 .avatar {
+  border-color: #c98b4b;
+  background: #3a2b1d;
+  color: #f0d2b0;
+}
+
+.podio__nome {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.podio__voce {
+  font-weight: 600;
+  color: #8fa6d6;
+}
+
+.podio__bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, #c3cbd6, #8e97a5);
+  color: rgb(0 0 0 / 62%);
+  margin-top: 7px;
+  /* a altura final de cada degrau; a animação sai daqui */
+  --alto: 74px;
+  height: var(--alto);
+  transform-origin: bottom;
+  animation: subir-degrau 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.podio__lugar--1 .podio__bloco {
+  --alto: 100px;
+  background: linear-gradient(180deg, #f3c743, #c79a16);
+  animation-delay: 220ms;
+}
+
+.podio__lugar--2 .podio__bloco {
+  animation-delay: 110ms;
+}
+
+.podio__lugar--3 .podio__bloco {
+  --alto: 56px;
+  background: linear-gradient(180deg, #c98b4b, #96612f);
+}
+
+@keyframes subir-degrau {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+
+  to {
+    height: var(--alto);
+    opacity: 1;
+  }
+}
+
+.podio__posicao {
+  font-family: var(--titulo);
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgb(0 0 0 / 38%);
+}
+
+.podio__destaque {
+  font-family: var(--titulo);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.podio__numeros {
+  margin: 2px 0 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #8fa6d6;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .podio__bloco {
+    animation: none;
+    height: var(--alto);
+    opacity: 1;
+  }
+}

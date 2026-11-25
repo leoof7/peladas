@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Avatar from '../../componentes/Avatar.jsx'
 import { agora, novoId } from '../../dados/api.js'
 import { casarNomes, chaveNome, lerNomesColados, presentes } from '../../dados/regras.js'
 import { semAcento } from '../../util/formato.js'
@@ -13,6 +14,7 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
   const [importando, definirImportando] = useState(false)
   const [novoNome, definirNovoNome] = useState('')
   const [erro, definirErro] = useState('')
+  const [mexendo, definirMexendo] = useState(null)
 
   const ehMensal = pelada.cobranca === 'mensal'
   const lista = jogo.lista || []
@@ -135,124 +137,127 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
     }
   }
 
+  // Tocar numa pessoa abre as ações dela ali mesmo: em coluna estreita não
+  // cabe uma fileira de botões em cada linha.
+  const acoesDe = (jogadorId, indice) =>
+    mexendo === jogadorId && ehDiretoria ? (
+      <div className="chegada__acoes">
+        <button type="button" className="botao botao--pequeno" onClick={() => trocarOrdem(indice, -1)} disabled={indice === 0}>
+          ↑
+        </button>
+        <button
+          type="button"
+          className="botao botao--pequeno"
+          onClick={() => trocarOrdem(indice, 1)}
+          disabled={indice === chegaram.length - 1}
+        >
+          ↓
+        </button>
+        <button type="button" className="botao botao--pequeno" onClick={() => { alternarChegada(jogadorId); definirMexendo(null) }}>
+          Não veio
+        </button>
+      </div>
+    ) : null
+
+  const pessoa = (jogadorId, indice, naEspera) => (
+    <div key={jogadorId} className="chegada__pessoa">
+      <button
+        type="button"
+        className={`chegada__toque${mexendo === jogadorId ? ' chegada__toque--aberto' : ''}`}
+        onClick={() => ehDiretoria && definirMexendo(mexendo === jogadorId ? null : jogadorId)}
+        disabled={!ehDiretoria}
+      >
+        <span className={`chegada__ordem${naEspera ? ' chegada__ordem--espera' : ''}`}>{indice + 1}</span>
+        <Avatar nome={porId(jogadorId)?.nome} foto={porId(jogadorId)?.foto} tamanho="mini" />
+        <span className="chegada__nome">{nomeDe(jogadorId)}</span>
+      </button>
+      {acoesDe(jogadorId, indice)}
+    </div>
+  )
+
+  const jogam = chegaram.slice(0, limite)
+  const espera = chegaram.slice(limite)
+  const porcento = (quanto) => `${Math.min(100, Math.round((quanto / Math.max(limite, chegaram.length, 1)) * 100))}%`
+
   return (
     <>
       {erro && <p className="erro">{erro}</p>}
 
-      <section className="cartao">
-        <div className="numeros">
-          <div className="numero">
-            <span className="numero__valor">{lista.length}</span>
-            <span className="numero__nome">na lista</span>
-          </div>
-          <div className="numero">
-            <span className="numero__valor">{chegaram.length}</span>
-            <span className="numero__nome">chegaram</span>
-          </div>
-          <div className="numero">
-            <span className="numero__valor">{Math.max(0, chegaram.length - limite)}</span>
-            <span className="numero__nome">{ehMensal ? 'de fora' : 'passaram das vagas'}</span>
-          </div>
+      <section className="medidor">
+        <div className="medidor__topo">
+          <span className="medidor__grande">{chegaram.length}</span>
+          <span className="medidor__de">
+            {chegaram.length === 1 ? 'chegou' : 'chegaram'} · {limite} {ehMensal ? 'jogam' : 'vagas'}
+          </span>
         </div>
-        <p className="ajuda">
-          A lista é quem disse que vem. Chegou é quem apareceu.{' '}
-          {ehMensal
-            ? `Os primeiros ${limite} que chegarem jogam; quem passar disso entra no 2º tempo.`
-            : `A quadra tem ${limite} vagas.`}
-        </p>
+        <div className="medidor__barra">
+          <i style={{ width: porcento(jogam.length), background: 'var(--destaque)' }} />
+          <i style={{ width: porcento(espera.length), background: 'var(--ouro)' }} />
+        </div>
+        <div className="medidor__legenda">
+          <span><i className="ponto" style={{ background: 'var(--destaque)' }} />{jogam.length} jogam</span>
+          {espera.length > 0 && (
+            <span><i className="ponto" style={{ background: 'var(--ouro)' }} />{espera.length} {ehMensal ? 'no 2º tempo' : 'na espera'}</span>
+          )}
+          {naLista.length > 0 && (
+            <span><i className="ponto" style={{ background: 'var(--linha)' }} />{naLista.length} só na lista</span>
+          )}
+        </div>
       </section>
 
-      <section className="cartao">
-        <h2 className="titulo-secao">Quem chegou · {chegaram.length}</h2>
-        {chegaram.length === 0 ? (
-          <p className="ajuda">Ninguém marcado como chegou ainda.</p>
-        ) : (
-          <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {chegaram.map((jogadorId, indice) => (
-              <li key={jogadorId} className="linha">
-                <span
-                  style={{
-                    width: 28,
-                    fontFamily: 'var(--titulo)',
-                    fontWeight: 800,
-                    fontSize: 20,
-                    textAlign: 'right',
-                    color: indice < limite ? 'var(--tinta)' : 'var(--alerta)',
-                  }}
-                >
-                  {indice + 1}
-                </span>
-                <span className="linha__nome">{nomeDe(jogadorId)}</span>
-                {ehMensal && indice === limite && <span className="chip chip--neutro">2º tempo</span>}
-                {ehDiretoria && (
-                  <>
-                    <button
-                      type="button"
-                      className="botao botao--pequeno"
-                      aria-label={`Subir ${nomeDe(jogadorId)} na ordem de chegada`}
-                      onClick={() => trocarOrdem(indice, -1)}
-                      disabled={indice === 0}
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="button"
-                      className="botao botao--pequeno"
-                      aria-label={`Descer ${nomeDe(jogadorId)} na ordem de chegada`}
-                      onClick={() => trocarOrdem(indice, 1)}
-                      disabled={indice === chegaram.length - 1}
-                    >
-                      ↓
-                    </button>
-                    <button
-                      type="button"
-                      className="botao botao--pequeno"
-                      onClick={() => alternarChegada(jogadorId)}
-                    >
-                      Não veio
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ol>
-        )}
-      </section>
+      <div className="chegada-colunas">
+        <section className="caixa-chegada">
+          <h2 className="titulo-secao">{ehMensal ? 'Jogam' : 'Na quadra'} · {jogam.length}</h2>
+          {jogam.length === 0 ? (
+            <p className="ajuda">Ninguém chegou ainda.</p>
+          ) : (
+            jogam.map((jogadorId, indice) => pessoa(jogadorId, indice, false))
+          )}
+        </section>
 
-      <section className="cartao">
-        <h2 className="titulo-secao">Na lista, ainda não chegou · {naLista.length}</h2>
-        {naLista.length === 0 ? (
-          <p className="ajuda">
-            {lista.length === 0 ? 'A lista está vazia.' : 'Todo mundo da lista já chegou.'}
-          </p>
-        ) : (
-          naLista.map((jogadorId) => (
-            <div key={jogadorId} className="linha">
-              <span className="linha__nome">{nomeDe(jogadorId)}</span>
-              {ehDiretoria && (
-                <>
-                  <button
-                    type="button"
-                    className="botao botao--pequeno"
-                    style={{ background: 'var(--destaque)', color: '#fff', border: 0 }}
-                    onClick={() => alternarChegada(jogadorId)}
-                  >
-                    Chegou
-                  </button>
-                  <button
-                    type="button"
-                    className="botao botao--pequeno"
-                    aria-label={`Tirar ${nomeDe(jogadorId)} da lista`}
-                    onClick={() => tirarDaLista(jogadorId)}
-                  >
-                    ✕
-                  </button>
-                </>
-              )}
-            </div>
-          ))
-        )}
-      </section>
+        <section className={`caixa-chegada${espera.length ? ' caixa-chegada--espera' : ''}`}>
+          <h2 className="titulo-secao">{ehMensal ? '2º tempo' : 'Espera'} · {espera.length}</h2>
+          {espera.length === 0 ? (
+            <p className="ajuda">
+              {ehMensal ? `Até ${limite} ninguém espera.` : `Ainda tem ${Math.max(0, limite - chegaram.length)} vaga(s).`}
+            </p>
+          ) : (
+            espera.map((jogadorId, indice) => pessoa(jogadorId, limite + indice, true))
+          )}
+
+          {naLista.length > 0 && (
+            <>
+              <h2 className="titulo-secao" style={{ marginTop: 12 }}>Disseram que vêm · {naLista.length}</h2>
+              {naLista.map((jogadorId) => (
+                <div key={jogadorId} className="chegada__pessoa chegada__pessoa--so-lista">
+                  <Avatar nome={porId(jogadorId)?.nome} foto={porId(jogadorId)?.foto} tamanho="mini" />
+                  <span className="chegada__nome">{nomeDe(jogadorId)}</span>
+                  {ehDiretoria && (
+                    <>
+                      <button type="button" className="botao botao--pequeno botao--chegou" onClick={() => alternarChegada(jogadorId)}>
+                        Chegou
+                      </button>
+                      <button
+                        type="button"
+                        className="botao botao--pequeno"
+                        aria-label={`Tirar ${nomeDe(jogadorId)} da lista`}
+                        onClick={() => tirarDaLista(jogadorId)}
+                      >
+                        ✕
+                      </button>
+                    </>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+        </section>
+      </div>
+
+      <p className="ajuda centro">
+        A lista é quem disse que vem. Chegou é quem apareceu.{' '}
+        {ehDiretoria && 'Toque em quem chegou pra mudar a ordem ou tirar.'}
+      </p>
 
       {ehDiretoria && (
         <>

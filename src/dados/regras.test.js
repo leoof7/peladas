@@ -13,6 +13,8 @@ import {
   montarTimes,
   montarTimesPorEstrelas,
   pesosDoSorteio,
+  separarGoleiros,
+  sortearTimes,
   quemPaga,
   resultadoDoJogo,
   resumoDoDinheiroDoJogo,
@@ -331,4 +333,69 @@ test('importação sugere sobrenomes e grafias próximas, mas não escolhe nomes
   assert.deepEqual(casarNomes(nomes, cadastro).map(({ jogadorId, certeza }) => [jogadorId, certeza]), [
     ['g', 'exato'], ['g', 'parecido'], ['d', 'parecido'], [null, 'duvida'], [null, 'duvida'], [null, 'novo'],
   ])
+})
+
+test('goleiro fica de fora do sorteio', () => {
+  const jogadores = [
+    { id: 'g1', nome: 'Derick', posicao: 'goleiro', estrelas: 4 },
+    { id: 'g2', nome: 'Henrique', posicao: 'goleiro', estrelas: 3 },
+    { id: 'a', nome: 'Léo', posicao: 'meio', estrelas: 5 },
+    { id: 'b', nome: 'Suan', posicao: 'defesa', estrelas: 3 },
+  ]
+  const { goleiros, linha } = separarGoleiros(['g1', 'a', 'g2', 'b'], jogadores)
+  assert.deepEqual(goleiros, ['g1', 'g2'])
+  assert.deepEqual(linha, ['a', 'b'])
+})
+
+test('o sorteio divide só a linha e equilibra as estrelas', () => {
+  const jogadores = [
+    { id: 'gol', posicao: 'goleiro', estrelas: 4 },
+    { id: 'a', posicao: 'meio', estrelas: 5 },
+    { id: 'b', posicao: 'meio', estrelas: 5 },
+    { id: 'c', posicao: 'defesa', estrelas: 2 },
+    { id: 'd', posicao: 'defesa', estrelas: 2 },
+  ]
+  const resultado = sortearTimes(['gol', 'a', 'b', 'c', 'd'], jogadores, { porTime: 2 })
+  assert.deepEqual(resultado.goleiros, ['gol'])
+  assert.equal(resultado.times[0].length, 2)
+  assert.equal(resultado.times[1].length, 2)
+  assert.equal(resultado.fora.length, 0)
+  // 5+2 de cada lado: os dois times somam 7 estrelas
+  assert.equal(resultado.diferenca, 0)
+  assert.deepEqual(resultado.somas, [7, 7])
+  const todos = [...resultado.times[0], ...resultado.times[1]].sort()
+  assert.deepEqual(todos, ['a', 'b', 'c', 'd'])
+})
+
+test('quem passa do tamanho do time fica de fora, sem goleiro no meio', () => {
+  const jogadores = ['a', 'b', 'c', 'd', 'e'].map((id) => ({ id, posicao: 'meio', estrelas: 3 }))
+  jogadores.push({ id: 'gol', posicao: 'goleiro', estrelas: 5 })
+  const { times, fora, goleiros } = sortearTimes(['a', 'b', 'gol', 'c', 'd', 'e'], jogadores, { porTime: 2 })
+  assert.deepEqual(goleiros, ['gol'])
+  assert.equal(times[0].length + times[1].length, 4)
+  assert.equal(fora.length, 1)
+  assert.ok(!fora.includes('gol'))
+})
+
+test('tirar de novo pode dar outro time', () => {
+  const jogadores = Array.from({ length: 10 }, (_, i) => ({
+    id: `j${i}`, posicao: 'meio', estrelas: [5, 4, 4, 3, 3, 3, 3, 2, 2, 1][i],
+  }))
+  const ids = jogadores.map((jogador) => jogador.id)
+  const resultados = new Set()
+  for (let volta = 0; volta < 40; volta += 1) {
+    resultados.add(JSON.stringify(sortearTimes(ids, jogadores, { porTime: 5 }).times[0].sort()))
+  }
+  assert.ok(resultados.size > 1, 'o sorteio deveria variar entre as chamadas')
+})
+
+test('mesmo variando, o sorteio não deixa os times desequilibrados', () => {
+  const jogadores = Array.from({ length: 10 }, (_, i) => ({
+    id: `j${i}`, posicao: 'meio', estrelas: [5, 4.5, 4, 3.5, 3, 3, 2.5, 2, 1.5, 1][i],
+  }))
+  const ids = jogadores.map((jogador) => jogador.id)
+  for (let volta = 0; volta < 30; volta += 1) {
+    const { diferenca } = sortearTimes(ids, jogadores, { porTime: 5 })
+    assert.ok(diferenca <= 0.5, `diferença de ${diferenca} estrelas é demais`)
+  }
 })

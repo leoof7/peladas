@@ -140,6 +140,66 @@ export function dividirEmDois(ids, jogadores, sorteio = Math.random) {
   return [melhor.ids, fila.filter((id) => !escolhidos.has(id))]
 }
 
+// O goleiro não entra no sorteio: ele fica à parte e a diretoria escolhe na
+// hora pra qual time vai.
+export function separarGoleiros(ids, jogadores) {
+  const cadastro = new Map(jogadores.map((jogador) => [jogador.id, jogador]))
+  const limpos = [...new Set(ids)]
+  return {
+    goleiros: limpos.filter((id) => cadastro.get(id)?.posicao === 'goleiro'),
+    linha: limpos.filter((id) => cadastro.get(id)?.posicao !== 'goleiro'),
+  }
+}
+
+// Meia estrela de diferença já é empate na prática: parar aí deixa o sorteio
+// variar de verdade a cada "tirar de novo", em vez de cair sempre no mesmo.
+const DIFERENCA_BOA = 1
+
+// Divide os jogadores de linha em dois times do mesmo tamanho, deixando a soma
+// das estrelas o mais perto possível. Chamar de novo dá outro resultado.
+export function sortearDoisTimes(ids, jogadores, sorteio = Math.random, tentativas = 160) {
+  const fila = [...new Set(ids)]
+  if (fila.length < 2) return [fila, []]
+  const pesos = pesosDoSorteio(fila, jogadores)
+  const tamanhos = [Math.ceil(fila.length / 2), Math.floor(fila.length / 2)]
+  let melhor = null
+
+  for (let volta = 0; volta < tentativas; volta += 1) {
+    // Embaralha antes de ordenar: entre os de mesma estrela, a ordem muda.
+    const ordem = embaralhar([...fila], sorteio).sort((um, outro) => pesos.get(outro).peso - pesos.get(um).peso)
+    const times = [[], []]
+    const somas = [0, 0]
+    for (const id of ordem) {
+      const cabem = [0, 1].filter((lado) => times[lado].length < tamanhos[lado])
+      const lado = cabem.sort((um, outro) => somas[um] - somas[outro] || (sorteio() < 0.5 ? -1 : 1))[0]
+      times[lado].push(id)
+      somas[lado] += pesos.get(id).peso
+    }
+    const diferenca = Math.abs(somas[0] - somas[1])
+    if (!melhor || diferenca < melhor.diferenca) melhor = { times, diferenca }
+    if (melhor.diferenca <= DIFERENCA_BOA) break
+  }
+  return melhor.times
+}
+
+// O sorteio inteiro de um dia: goleiros de fora, linha dividida e sobra.
+export function sortearTimes(ids, jogadores, { porTime = 5, sorteio = Math.random } = {}) {
+  const { goleiros, linha } = separarGoleiros(ids, jogadores)
+  const cabem = Math.min(linha.length, porTime * 2)
+  const jogam = linha.slice(0, cabem)
+  const fora = linha.slice(cabem)
+  const times = jogam.length >= 2 ? sortearDoisTimes(jogam, jogadores, sorteio) : [jogam, []]
+  const pesos = pesosDoSorteio(linha, jogadores)
+  const somar = (time) => time.reduce((total, id) => total + (pesos.get(id)?.peso ?? 0), 0) / 2
+  return {
+    times,
+    goleiros,
+    fora,
+    somas: times.map(somar),
+    diferenca: Math.abs(somar(times[0]) - somar(times[1] || [])),
+  }
+}
+
 // Mantém a ordem de chegada para definir quem começa e quem fica de fora.
 export function montarTimesPorEstrelas(ids, porTime, jogadores, sorteio = Math.random) {
   if (!Number.isInteger(porTime) || porTime < 1) return []

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Abas from '../componentes/Abas.jsx'
 import Cabecalho from '../componentes/Cabecalho.jsx'
+import Podio from '../componentes/Podio.jsx'
 import { estatisticasDoAno } from '../dados/regras.js'
 import { useColecao } from '../dados/useColecao.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
@@ -90,6 +91,15 @@ export default function Ranking({ peladaId, usuario }) {
         {tabela.length === 0 ? (
           <p className="ajuda">Ainda não tem número nenhum em {anoEscolhido}.</p>
         ) : (
+          <>
+          {/* a chave faz os degraus subirem de novo quando muda a coluna ou o ano */}
+          <Podio
+            key={`${coluna}-${anoEscolhido}`}
+            tres={tabela.slice(0, 3)}
+            coluna={coluna}
+            jogadores={jogadores}
+            meuId={membro.jogadorId}
+          />
           <ol style={{ listStyle: 'none', margin: 0, padding: 0 }} className="cartao">
             {tabela.map((linha, posicao) => (
               <li key={linha.jogadorId} className="linha">
@@ -128,6 +138,7 @@ export default function Ranking({ peladaId, usuario }) {
               </li>
             ))}
           </ol>
+          </>
         )}
       </div>
       <Abas peladaId={peladaId} atual="ranking" ehMensal={ehMensal} />
