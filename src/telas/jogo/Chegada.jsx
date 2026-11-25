@@ -41,6 +41,14 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
     salvar((atual) => ({ lista: (atual.lista || []).filter((outro) => outro !== jogadorId) }))
   }
 
+  function todosDaListaChegaram() {
+    salvar((atual) => {
+      const faltando = (atual.lista || []).filter((id) => !presentes(atual).includes(id))
+      if (faltando.length === 0) return {}
+      return { chegaram: [...presentes(atual), ...faltando] }
+    })
+  }
+
   function alternarChegada(jogadorId) {
     salvar((atual) => {
       const atuais = presentes(atual)
@@ -96,10 +104,17 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
       return
     }
     definirErro('')
-    definirLidos(casarNomes(nomes, jogadores).map((item) => ({ ...item, escolha: item.jogadorId || '' })))
+    // Quem não está cadastrado já vem marcado como convidado. Antes vinha em
+    // "Ignorar" e sumia da lista sem ninguém perceber.
+    definirLidos(
+      casarNomes(nomes, jogadores).map((item) => ({
+        ...item,
+        escolha: item.jogadorId || (item.certeza === 'duvida' ? '' : '@novo'),
+      })),
+    )
   }
 
-  async function confirmarLidos() {
+  async function confirmarLidos(jaChegaram = false) {
     if (importando || !lidos?.some((item) => item.escolha)) return
     definirImportando(true)
     try {
@@ -127,7 +142,15 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
         }
       }
       if (!ids.size) return
-      if (await salvar((atual) => ({ lista: [...new Set([...(atual.lista || []), ...ids])] }), novos)) {
+      if (
+        await salvar(
+          (atual) => ({
+            lista: [...new Set([...(atual.lista || []), ...ids])],
+            ...(jaChegaram ? { chegaram: [...new Set([...presentes(atual), ...ids])] } : {}),
+          }),
+          novos,
+        )
+      ) {
         definirLidos(null)
         definirColado('')
         definirErro('')
@@ -228,10 +251,17 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
       )}
 
       <section className="caixa-chegada caixa-chegada--lista">
-        <h2 className="titulo-secao">
-          Lista da pelada · {naLista.length}
-          <span className="lista__detalhe"> disseram que vêm</span>
-        </h2>
+        <div className="caixa-chegada__cabeca">
+          <h2 className="titulo-secao">
+            Lista da pelada · {naLista.length}
+            <span className="lista__detalhe"> disseram que vêm</span>
+          </h2>
+          {ehDiretoria && naLista.length > 1 && (
+            <button type="button" className="botao botao--pequeno botao--chegou" onClick={todosDaListaChegaram}>
+              Todos chegaram
+            </button>
+          )}
+        </div>
         {naLista.length === 0 ? (
           <p className="ajuda">
             {lista.length === 0
@@ -316,9 +346,33 @@ export default function Chegada({ peladaId, pelada, jogo, jogadores, ehDiretoria
                     </select>
                   </div>
                 ))}
-                <button type="button" className="botao botao--principal" onClick={confirmarLidos} disabled={importando || !lidos.some((item) => item.escolha)}>
-                  {importando ? 'Salvando…' : 'Pôr na lista'}
-                </button>
+                <p className="ajuda">
+                  {lidos.filter((item) => item.escolha && item.escolha !== '@novo').length} já cadastrados
+                  {lidos.some((item) => item.escolha === '@novo') &&
+                    ` · ${lidos.filter((item) => item.escolha === '@novo').length} entram como convidado`}
+                  {lidos.some((item) => !item.escolha) &&
+                    ` · ${lidos.filter((item) => !item.escolha).length} ficam de fora`}
+                </p>
+                <div className="acoes-etapa">
+                  <button
+                    type="button"
+                    className="botao"
+                    onClick={() => confirmarLidos(false)}
+                    disabled={importando || !lidos.some((item) => item.escolha)}
+                    style={{ flex: 1 }}
+                  >
+                    {importando ? 'Salvando…' : 'Só pôr na lista'}
+                  </button>
+                  <button
+                    type="button"
+                    className="botao botao--principal"
+                    onClick={() => confirmarLidos(true)}
+                    disabled={importando || !lidos.some((item) => item.escolha)}
+                    style={{ flex: 1 }}
+                  >
+                    {importando ? 'Salvando…' : 'Já chegaram'}
+                  </button>
+                </div>
               </>
             )}
             </details>

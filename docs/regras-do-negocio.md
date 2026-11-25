@@ -46,6 +46,11 @@ Decisões combinadas com o Leandro em 17/09/2026. Se alguma regra mudar, atualiz
 
 São duas coisas diferentes:
 
+- Ao **colar a lista do grupo**, quem não está cadastrado já entra como
+  **convidado** (antes ficava em "Ignorar" e sumia sem ninguém perceber). A
+  tela diz quantos entram cadastrados, quantos viram convidado e quantos ficam
+  de fora. Dá pra **só pôr na lista** ou pôr **já marcando que chegaram**.
+- O bloco da lista tem **"Todos chegaram"**, pra marcar a lista inteira de uma vez.
 - **Lista** é quem disse que vem. Pode entrar de três jeitos: **colar o texto** do WhatsApp,
   **print** do grupo ou **foto da lista de papel**; ou puxando dos **jogadores já cadastrados**.
   A diretoria confere os nomes antes de salvar. O nome lido do grupo casa pelo nome **ou pelo apelido**.

@@ -1833,3 +1833,15 @@ svg {
 textarea {
   max-width: 100%;
 }
+
+.caixa-chegada__cabeca {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.caixa-chegada__cabeca .titulo-secao {
+  margin-bottom: 0;
+}
