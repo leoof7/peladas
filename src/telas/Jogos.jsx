@@ -67,7 +67,7 @@ export default function Jogos({ peladaId, usuario }) {
   return (
     <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
       <Cabecalho
-        titulo={ehMensal ? 'Domingos' : 'Peladas'}
+        titulo="Jogos"
         linha={pelada.nome}
         aoVoltar={() => irPara(`/p/${peladaId}`)}
         selo={ehDiretoria ? 'Diretoria' : 'Participante'}
@@ -77,10 +77,11 @@ export default function Jogos({ peladaId, usuario }) {
 
         {ehDiretoria && (
           <button type="button" className="botao botao--principal" onClick={novoJogo} disabled={criando}>
-            {criando ? 'Abrindo…' : ehMensal ? 'Abrir o domingo' : 'Abrir uma pelada'}
+            {criando ? 'Abrindo…' : 'Abrir novo jogo'}
           </button>
         )}
 
+        <h2 className="etapa-titulo">Histórico de jogos</h2>
         {anos.length > 1 && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} role="group" aria-label="Ano">
             {anos.map((umAno) => (
@@ -128,15 +129,15 @@ export default function Jogos({ peladaId, usuario }) {
                           : [
                               plural(presentes(jogo).length, 'jogou', 'jogaram'),
                               placar,
-                              resumo.falta > 0 ? `falta receber R$ ${resumo.falta.toFixed(2)}` : null,
+                              ehDiretoria && resumo.falta > 0 ? `falta receber R$ ${resumo.falta.toFixed(2)}` : null,
                             ]
                               .filter(Boolean)
                               .join(' · ')}
                       </span>
                     </span>
                     {!cancelado && resumo.quantidade > 0 && (
-                      <span className={resumo.falta > 0 ? 'chip chip--deve' : 'chip chip--pago'}>
-                        {resumo.falta > 0 ? 'em aberto' : 'quitado'}
+                      <span className={ehDiretoria && resumo.falta > 0 ? 'chip chip--deve' : 'chip chip--pago'}>
+                        {ehDiretoria && resumo.falta > 0 ? 'em aberto' : 'quitado'}
                       </span>
                     )}
                     <span aria-hidden="true">›</span>

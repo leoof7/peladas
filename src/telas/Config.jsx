@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Cabecalho from '../componentes/Cabecalho.jsx'
-import { assinarDoc, gravar } from '../dados/api.js'
+import { assinarDoc, gravarLote } from '../dados/api.js'
 import { gerarCodigo } from '../dados/pelada.js'
 import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { irPara } from '../util/rotas.js'
@@ -42,7 +42,16 @@ export default function Config({ peladaId, usuario }) {
   const valores = rascunho ?? (pelada ? { nome: pelada.nome, config: { ...pelada.config } } : null)
   const codigosAtuais = codigosRascunho ?? { participante: codigos?.participante || '', diretoria: codigos?.diretoria || '' }
 
-  if (carregando || !valores) {
+  const alterado = Boolean(rascunho || codigosRascunho)
+  const [confirmarSaida, definirConfirmarSaida] = useState(false)
+  useEffect(() => {
+    if (!alterado) return undefined
+    const avisar = (evento) => { evento.preventDefault(); evento.returnValue = '' }
+    window.addEventListener('beforeunload', avisar)
+    return () => window.removeEventListener('beforeunload', avisar)
+  }, [alterado])
+
+  if (carregando) {
     return (
       <div className="app">
         <div className="conteudo">
@@ -52,7 +61,7 @@ export default function Config({ peladaId, usuario }) {
     )
   }
 
-  if (!ehDiretoria) {
+  if (!ehDiretoria || !valores) {
     return (
       <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
         <Cabecalho titulo="Configurações" aoVoltar={() => irPara(`/p/${peladaId}`)} />
@@ -122,18 +131,13 @@ export default function Config({ peladaId, usuario }) {
 
     definirSituacao('salvando')
     try {
-      await gravar(`peladas/${peladaId}`, { nome: valores.nome.trim(), config })
-      if (codigosRascunho) {
-        await gravar(`peladas/${peladaId}/privado/codigos`, {
-          participante: codigosAtuais.participante,
-          diretoria: codigosAtuais.diretoria,
-        })
-        definirCodigosRascunho(null)
-      }
+      const itens = [{ caminho: `peladas/${peladaId}`, dados: { nome: valores.nome.trim(), config } }]
+      if (codigosRascunho) itens.push({ caminho: `peladas/${peladaId}/privado/codigos`, dados: codigosAtuais })
+      await gravarLote(itens)
+      definirRascunho(null)
+      definirCodigosRascunho(null)
       definirErro('')
       definirSituacao('salvo')
-      // Mostra o "Salvo" e volta pra tela da pelada.
-      setTimeout(() => irPara(`/p/${peladaId}`), 900)
     } catch (falha) {
       definirSituacao('parado')
       definirErro(
@@ -159,15 +163,20 @@ export default function Config({ peladaId, usuario }) {
       <Cabecalho
         titulo="Configurações"
         linha={pelada.nome}
-        aoVoltar={() => irPara(`/p/${peladaId}`)}
+        aoVoltar={() => alterado ? definirConfirmarSaida(true) : irPara(`/p/${peladaId}`)}
         selo="Diretoria"
       />
       <form className="conteudo" onSubmit={salvar}>
         {erro && <p className="erro">{erro}</p>}
+        {confirmarSaida && <section className="cartao cartao--aviso" role="alert">
+          <strong>Sair sem salvar as alterações?</strong>
+          <div className="acoes-times"><button type="button" className="botao" onClick={() => definirConfirmarSaida(false)}>Continuar editando</button>
+          <button type="button" className="botao botao--perigo" onClick={() => irPara(`/p/${peladaId}`)}>Sair sem salvar</button></div>
+        </section>}
         {recado && <p className="ajuda centro">{recado}</p>}
 
-        <div className="cartao">
-          <h2 className="titulo-secao">Grupo</h2>
+        <details className="cartao painel-recolhivel" open>
+          <summary>Grupo</summary>
           <div className="campo">
             <label htmlFor="nome-pelada">Nome</label>
             <input
@@ -179,10 +188,10 @@ export default function Config({ peladaId, usuario }) {
           <p className="ajuda">
             {pelada.local} · {ehMensal ? 'cobrança mensal' : 'rateio por pelada'}. Isso é fixo desta pelada.
           </p>
-        </div>
+        </details>
 
-        <div className="cartao">
-          <h2 className="titulo-secao">Cobrança</h2>
+        <details className="cartao painel-recolhivel">
+          <summary>Cobrança</summary>
           {ehMensal ? (
             <>
               <div className="campo">
@@ -246,11 +255,11 @@ export default function Config({ peladaId, usuario }) {
               </div>
             </>
           )}
-        </div>
+        </details>
 
         {ehMensal && (
-          <div className="cartao">
-            <h2 className="titulo-secao">Uniformes</h2>
+          <details className="cartao painel-recolhivel">
+            <summary>Uniformes</summary>
             <p className="ajuda">As cores que o pessoal usa. Em cada domingo a diretoria escolhe qual time usa qual.</p>
             {(valores.config.uniformes || []).map((uniforme, indice) => (
               <div key={indice} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -288,11 +297,11 @@ export default function Config({ peladaId, usuario }) {
             >
               Adicionar uniforme
             </button>
-          </div>
+          </details>
         )}
 
-        <div className="cartao">
-          <h2 className="titulo-secao">Quem recebe o Pix</h2>
+        <details className="cartao painel-recolhivel">
+          <summary>Pix</summary>
           <p className="ajuda">
             Sem QR Code: o app mostra a chave e todo mundo copia. Só a diretoria edita.
           </p>
@@ -380,10 +389,10 @@ export default function Config({ peladaId, usuario }) {
                 </select>
               </div>
             ))}
-        </div>
+        </details>
 
-        <div className="cartao">
-          <h2 className="titulo-secao">Acesso</h2>
+        <details className="cartao painel-recolhivel">
+          <summary>Acesso</summary>
           <p className="ajuda">
             O código dos jogadores é o que você manda no grupo. O da diretoria é só de quem edita o app.
           </p>
@@ -427,11 +436,11 @@ export default function Config({ peladaId, usuario }) {
             diferentes um do outro. Quem já entrou continua entrando; o código novo vale pra quem for entrar
             daqui pra frente.
           </p>
-        </div>
+        </details>
 
         {erro && <p className="erro">{erro}</p>}
-        <button type="submit" className="botao botao--principal" disabled={situacao === 'salvando'}>
-          {situacao === 'salvando' ? 'Salvando…' : situacao === 'salvo' ? 'Salvo ✓' : 'Salvar'}
+        <button type="submit" className="botao botao--principal" disabled={situacao === 'salvando' || !alterado}>
+          {situacao === 'salvando' ? 'Salvando…' : situacao === 'salvo' && !alterado ? 'Alterações salvas' : 'Salvar configurações'}
         </button>
       </form>
     </div>

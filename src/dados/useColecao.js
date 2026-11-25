@@ -13,8 +13,8 @@ export function useColecao(caminho) {
   return itens
 }
 
-export function useDoc(caminho) {
-  const [documento, definirDocumento] = useState(null)
+export function useDoc(caminho, inicial = null) {
+  const [documento, definirDocumento] = useState(inicial)
 
   useEffect(() => {
     if (!caminho) return undefined

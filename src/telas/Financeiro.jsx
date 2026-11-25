@@ -56,7 +56,7 @@ export default function Financeiro({ peladaId, usuario }) {
         { chave: 'meu', nome: 'O meu' },
       ]
     : [{ chave: 'meu', nome: 'O meu' }]
-  const secaoAtual = secao ?? secoes[0].chave
+  const secaoAtual = secoes.some((item) => item.chave === secao) ? secao : (ehDiretoria ? 'caixa' : secoes[0].chave)
 
   const doMes = mensalidadesDoMes(jogadores, mensalidades, ano, mes, valorMensalidade)
   const pagosNoMes = doMes.filter((linha) => linha.pago)
@@ -144,7 +144,7 @@ export default function Financeiro({ peladaId, usuario }) {
   return (
     <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
       <Cabecalho
-        titulo="Financeiro"
+        titulo={ehDiretoria ? "Caixa da pelada" : "Meu financeiro"}
         linha={`${pelada.nome} · ${ano}`}
         aoVoltar={() => irPara(`/p/${peladaId}`)}
         selo={ehDiretoria ? 'Diretoria' : 'Participante'}
@@ -159,6 +159,7 @@ export default function Financeiro({ peladaId, usuario }) {
                 key={item.chave}
                 type="button"
                 className={item.chave === secaoAtual ? 'passo passo--atual' : 'passo'}
+                aria-pressed={item.chave === secaoAtual}
                 onClick={() => definirSecao(item.chave)}
               >
                 {item.nome}
@@ -285,7 +286,7 @@ export default function Financeiro({ peladaId, usuario }) {
             </section>
 
             <form className="cartao" onSubmit={guardarLancamento}>
-              <h2 className="titulo-secao">Novo lançamento</h2>
+              <h2 className="titulo-secao">Registrar entrada ou saída</h2>
               <div className="campo">
                 <label htmlFor="descricao">O que foi</label>
                 <input

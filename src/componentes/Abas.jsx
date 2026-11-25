@@ -26,13 +26,13 @@ const ICONES = {
   ),
 }
 
-export default function Abas({ peladaId, atual, ehMensal }) {
+export default function Abas({ peladaId, atual }) {
   const abas = [
     { chave: 'inicio', nome: 'Início', caminho: `/p/${peladaId}` },
-    { chave: 'jogos', nome: ehMensal ? 'Domingos' : 'Peladas', caminho: `/p/${peladaId}/jogos` },
+    { chave: 'jogos', nome: 'Jogos', caminho: `/p/${peladaId}/jogos` },
     { chave: 'jogadores', nome: 'Jogadores', caminho: `/p/${peladaId}/jogadores` },
     { chave: 'ranking', nome: 'Ranking', caminho: `/p/${peladaId}/ranking` },
-    { chave: 'financeiro', nome: 'Financeiro', caminho: `/p/${peladaId}/financeiro` },
+    { chave: 'financeiro', nome: 'Caixa', caminho: `/p/${peladaId}/financeiro` },
   ]
 
   return (

@@ -5,11 +5,14 @@ import {
   casarNomes,
   dividir,
   dividirEmDois,
+  dividirCampoPorChegada,
   emAbertoDoJogador,
   estatisticasDoAno,
   lerNomesColados,
   mensalidadesDoMes,
   montarTimes,
+  montarTimesPorEstrelas,
+  pesosDoSorteio,
   quemPaga,
   resultadoDoJogo,
   resumoDoDinheiroDoJogo,
@@ -157,6 +160,13 @@ test('divide em dois times com o mesmo tamanho e sem repetir ninguém', () => {
   assert.deepEqual([...um, ...outro].sort(), [...ids].sort())
 })
 
+test('campo por chegada mantém a sequência e respeita o limite de quem começa', () => {
+  assert.deepEqual(dividirCampoPorChegada(['a', 'b', 'b', 'c', 'd', 'e', 'f'], 5), [
+    ['a', 'b', 'c'],
+    ['d', 'e'],
+  ])
+})
+
 test('estatísticas somam gols, assistências, presença e resultados do ano', () => {
   const jogos = [
     {
@@ -282,4 +292,43 @@ test('mensalidade não é cobrada de isento nem de quem saiu', () => {
   assert.equal(lista[0].pago, true)
   assert.equal(lista[1].pago, false)
   assert.equal(lista[0].valor, 60)
+})
+
+test('equilibra exatamente as meias estrelas e coloca um goleiro em cada time', () => {
+  const cadastro = [5, 2.5, 3, 4, 3.5, 3].map((estrelas, id) => ({
+    id: String(id), estrelas, posicao: id === 2 || id === 5 ? 'goleiro' : 'defesa',
+  }))
+  const ids = cadastro.map((j) => j.id)
+  const times = dividirEmDois(ids, cadastro, () => 0.7)
+  for (const time of times) {
+    assert.equal(time.length, 3)
+    assert.equal(time.filter((id) => cadastro[Number(id)].posicao === 'goleiro').length, 1)
+    assert.equal(time.reduce((soma, id) => soma + cadastro[Number(id)].estrelas, 0), 10.5)
+  }
+  assert.deepEqual(times.flat().sort(), ids)
+})
+
+test('sorteio de quadra mantém o rodízio e não perde quem chegou', () => {
+  const ids = Array.from({ length: 12 }, (_, i) => String(i))
+  const cadastro = ids.map((id) => ({ id, estrelas: id === '1' ? 0 : 3.5 }))
+  const times = montarTimesPorEstrelas(ids, 5, cadastro, () => 0.2)
+  assert.deepEqual(times.map((time) => time.length), [5, 5, 2])
+  assert.deepEqual(times[2], ids.slice(10))
+  assert.equal(new Set(times.flat()).size, 12)
+  assert.deepEqual(montarTimesPorEstrelas(ids.slice(0, 9), 5, cadastro).map((time) => time.length), [5, 4])
+  assert.equal(pesosDoSorteio(ids, cadastro).get('1').peso, 7)
+  assert.deepEqual(montarTimes(ids, 0), [])
+})
+
+test('importação sugere sobrenomes e grafias próximas, mas não escolhe nomes empatados', () => {
+  const cadastro = [
+    { id: 'g', nome: 'Gabriel dos Santos Silva', apelido: 'Biel' },
+    { id: 'p', nome: 'Paulo Silva', apelido: 'Paulinho' },
+    { id: 'd', nome: 'Paulo Andrade' },
+    { id: 'x', nome: 'José Pereira', ativo: false },
+  ]
+  const nomes = lerNomesColados('**Goleiros**\n1. Biel ✅\n2. Gabrile Santos\n3. Andrade (confirmado)\n4. Silva\n5. Paulo\n6. José Pereira')
+  assert.deepEqual(casarNomes(nomes, cadastro).map(({ jogadorId, certeza }) => [jogadorId, certeza]), [
+    ['g', 'exato'], ['g', 'parecido'], ['d', 'parecido'], [null, 'duvida'], [null, 'duvida'], [null, 'novo'],
+  ])
 })

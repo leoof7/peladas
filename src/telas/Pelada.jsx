@@ -61,7 +61,8 @@ export default function Pelada({ peladaId, usuario }) {
   const linkDaPelada = `${window.location.origin}${window.location.pathname}#/p/${peladaId}/entrar`
 
   const ordenados = [...jogos].sort((um, outro) => (outro.data || '').localeCompare(um.data || ''))
-  const emAndamento = ordenados.find((jogo) => jogo.status === 'aberto' && (jogo.data || '') >= hoje())
+  const emAndamento = ordenados.find((jogo) => jogo.status === 'aberto' && jogo.data === hoje())
+    || ordenados.filter((jogo) => jogo.status === 'aberto' && jogo.data > hoje()).at(-1)
   const ultimo = ordenados.find((jogo) => jogo.status !== 'cancelado' && (jogo.data || '') <= hoje())
 
   const minhaConta = membro?.jogadorId
@@ -109,7 +110,7 @@ export default function Pelada({ peladaId, usuario }) {
         <AvisoModoTeste />
 
         {emAndamento ? (
-          <section className="cartao">
+          <section className="cartao destaque-operacao">
             <h2 className="titulo-secao">{ehMensal ? 'Domingo em aberto' : 'Pelada em aberto'}</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <span style={{ fontFamily: 'var(--titulo)', fontWeight: 800, fontSize: 28, textTransform: 'uppercase' }}>
@@ -122,13 +123,13 @@ export default function Pelada({ peladaId, usuario }) {
               className="botao botao--principal"
               onClick={() => irPara(`/p/${peladaId}/j/${emAndamento.id}`)}
             >
-              Abrir o dia
+              {emAndamento.data === hoje() ? "Continuar jogo de hoje" : "Abrir jogo agendado"}
             </button>
           </section>
         ) : (
           ehDiretoria && (
             <button type="button" className="botao botao--principal" onClick={() => irPara(`/p/${peladaId}/jogos`)}>
-              {ehMensal ? 'Abrir o domingo' : 'Abrir uma pelada'}
+              {'Ver jogos e abrir um novo'}
             </button>
           )
         )}

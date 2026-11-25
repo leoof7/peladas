@@ -66,7 +66,7 @@ export default function FichaJogador({ jogador, aoSalvar, aoZerarPin, aoExcluir,
           </button>
           {dados.foto && (
             <button type="button" className="botao botao--pequeno" onClick={() => mudar({ foto: '' })}>
-              Tirar foto
+              Remover foto
             </button>
           )}
         </div>

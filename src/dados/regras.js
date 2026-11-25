@@ -1,3 +1,5 @@
+import { arredondar } from './estrelas.js'
+
 // As contas da pelada. Tudo aqui é conta pura: entra dado, sai resultado.
 // Nada de banco, nada de tela — é a parte que tem teste automático.
 
@@ -76,12 +78,19 @@ export function resumoDoDinheiroDoJogo(pelada, jogo, jogadores) {
 
 // Sorteio dos times. "ordem" respeita a ordem de chegada; "aleatorio" embaralha.
 export function montarTimes(ids, porTime, modo = 'aleatorio', sorteio = Math.random) {
+  if (!Number.isInteger(porTime) || porTime < 1) return []
   const fila = modo === 'ordem' ? [...ids] : embaralhar([...ids], sorteio)
   const times = []
   for (let posicao = 0; posicao < fila.length; posicao += porTime) {
     times.push(fila.slice(posicao, posicao + porTime))
   }
   return times
+}
+
+export function dividirCampoPorChegada(ids, limite) {
+  const titulares = [...new Set(ids)].slice(0, limite)
+  const meio = Math.ceil(titulares.length / 2)
+  return [titulares.slice(0, meio), titulares.slice(meio)]
 }
 
 export function embaralhar(lista, sorteio = Math.random) {
@@ -92,18 +101,69 @@ export function embaralhar(lista, sorteio = Math.random) {
   return lista
 }
 
-// Divide em dois times equilibrando as posições (a Madrugada tira na tampinha,
-// mas isto serve pro app sugerir quando quiserem).
+// Quem não tem nota recebe a média do grupo apenas para o cálculo.
+export function pesosDoSorteio(ids, jogadores) {
+  const cadastro = new Map(jogadores.map((j) => [j.id, j]))
+  const notas = ids.map((id) => arredondar(cadastro.get(id)?.estrelas) * 2).filter(Boolean)
+  const media = notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length) : 0
+  return new Map(ids.map((id) => [id, {
+    peso: arredondar(cadastro.get(id)?.estrelas) * 2 || media,
+    goleiro: cadastro.get(id)?.posicao === 'goleiro',
+  }]))
+}
+
+// Busca a menor diferença possível mantendo tamanho e goleiros equilibrados.
 export function dividirEmDois(ids, jogadores, sorteio = Math.random) {
-  const ordem = { goleiro: 0, defesa: 1, meio: 2, ataque: 3 }
-  const porPosicao = embaralhar([...ids], sorteio).sort((um, outro) => {
-    const posicaoUm = ordem[jogadores.find((j) => j.id === um)?.posicao] ?? 4
-    const posicaoOutro = ordem[jogadores.find((j) => j.id === outro)?.posicao] ?? 4
-    return posicaoUm - posicaoOutro
-  })
-  const times = [[], []]
-  porPosicao.forEach((jogadorId, indice) => times[indice % 2].push(jogadorId))
-  return times
+  const fila = embaralhar([...new Set(ids)], sorteio)
+  const pesos = pesosDoSorteio(fila, jogadores)
+  const tamanho = Math.ceil(fila.length / 2)
+  const goleiros = fila.filter((id) => pesos.get(id).goleiro).length
+  const total = fila.reduce((soma, id) => soma + pesos.get(id).peso, 0)
+  const estados = Array.from({ length: tamanho + 1 }, () => new Map())
+  estados[0].set('0:0', { soma: 0, gols: 0, ids: [] })
+  for (const id of fila) {
+    const { peso, goleiro } = pesos.get(id)
+    for (let n = tamanho; n > 0; n--) {
+      for (const anterior of estados[n - 1].values()) {
+        const soma = anterior.soma + peso
+        const gols = anterior.gols + Number(goleiro)
+        const chave = soma + ':' + gols
+        if (!estados[n].has(chave)) estados[n].set(chave, { soma, gols, ids: [...anterior.ids, id] })
+      }
+    }
+  }
+  const melhor = [...estados[tamanho].values()].sort((a, b) =>
+    Math.abs(a.gols * 2 - goleiros) - Math.abs(b.gols * 2 - goleiros)
+    || Math.abs(a.soma * 2 - total) - Math.abs(b.soma * 2 - total),
+  )[0]
+  const escolhidos = new Set(melhor.ids)
+  return [melhor.ids, fila.filter((id) => !escolhidos.has(id))]
+}
+
+// Mantém a ordem de chegada para definir quem começa e quem fica de fora.
+export function montarTimesPorEstrelas(ids, porTime, jogadores, sorteio = Math.random) {
+  if (!Number.isInteger(porTime) || porTime < 1) return []
+  const fila = [...new Set(ids)]
+  if (fila.length < porTime * 2 && fila.length >= 2) return dividirEmDois(fila, jogadores, sorteio)
+  const quantidade = Math.max(1, Math.floor(fila.length / porTime))
+  const titulares = fila.slice(0, quantidade * porTime)
+  const espera = fila.slice(titulares.length)
+  let grupos
+  if (quantidade === 2) {
+    grupos = dividirEmDois(titulares, jogadores, sorteio)
+  } else {
+    const pesos = pesosDoSorteio(titulares, jogadores)
+    const times = Array.from({ length: quantidade }, () => ({ ids: [], peso: 0, gols: 0 }))
+    for (const id of embaralhar(titulares, sorteio).sort((a, b) => Number(pesos.get(b).goleiro) - Number(pesos.get(a).goleiro) || pesos.get(b).peso - pesos.get(a).peso)) {
+      const { peso, goleiro } = pesos.get(id)
+      const [time] = times.filter((item) => item.ids.length < porTime).sort((a, b) => (goleiro ? a.gols - b.gols : 0) || a.peso - b.peso || a.ids.length - b.ids.length)
+      time.ids.push(id)
+      time.peso += peso
+      time.gols += Number(goleiro)
+    }
+    grupos = times.map((time) => time.ids).filter((time) => time.length)
+  }
+  return espera.length ? [...grupos, espera] : grupos
 }
 
 // Estatísticas do ano: gols, assistências, presença e resultados.
@@ -167,11 +227,16 @@ export function lerNomesColados(texto) {
         .replace(/^[\s\-–—]*\d+\s*[-.)°ºª:]*\s*/, '')
         .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
         .replace(/\b\d{1,2}:\d{2}\b/g, '')
-        .replace(/[✓✔✅]|☑️?/g, '')
+        .replace(/[✓✔✅★☆*~_]|☑️?|[︎️⃣]/g, '')
+        .replace(/^[\s•▪◦+–—-]+/, '')
+        .replace(/\s*\((?:pago|confirmado|ok|goleiro|defesa|meio|ataque)\)\s*$/i, '')
+        .replace(/\s*,5\s*$/, '')
+        .replace(/\s{2,}/g, ' ')
         .trim(),
     )
     .filter((linha) => linha.length >= 2 && /\p{L}/u.test(linha))
     .filter((linha) => !/^(lista|pelada|espera|reserva|confirmados?)\b/i.test(linha))
+    .filter((linha) => !/^(goleiros?|defesa|defensores|meio(?:-campo)?|ataque|atacantes|linha|de fora)[:\s]*$/i.test(linha))
 }
 
 export function semAcento(texto) {
@@ -182,32 +247,61 @@ export function semAcento(texto) {
     .toLowerCase()
 }
 
-// Casa cada nome lido com um jogador cadastrado. Quando não tem certeza,
-// devolve a sugestão pra diretoria confirmar.
+export function chaveNome(texto) {
+  return semAcento(texto).replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+function distancia(a, b) {
+  const matriz = Array.from({ length: a.length + 1 }, (_, i) => [i])
+  for (let j = 0; j <= b.length; j++) matriz[0][j] = j
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      matriz[i][j] = Math.min(matriz[i - 1][j] + 1, matriz[i][j - 1] + 1, matriz[i - 1][j - 1] + Number(a[i - 1] !== b[j - 1]))
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        matriz[i][j] = Math.min(matriz[i][j], matriz[i - 2][j - 2] + 1)
+      }
+    }
+  }
+  return matriz[a.length][b.length]
+}
+
+const palavras = (nome) => nome.split(' ').filter((p) => p && !['de','da','do','das','dos','e'].includes(p))
+
+function pontosDoNome(alvo, nome) {
+  if (alvo === nome) return 100
+  const a = palavras(alvo), b = palavras(nome)
+  if (!a.length || !b.length || alvo.length < 3) return 0
+  const encaixa = (curto, longo) => {
+    let i = 0
+    for (const parte of longo) if (parte === curto[i]) i++
+    return i === curto.length
+  }
+  if (encaixa(a, b) || encaixa(b, a)) return 90
+  const erro = distancia(alvo, nome)
+  if (Math.min(alvo.length, nome.length) >= 4 && erro <= (Math.max(alvo.length, nome.length) >= 9 ? 2 : 1)) return 80 - erro
+  if (a.length === 1 && a[0].length >= 5 && b.some((parte) => parte.length >= 5 && distancia(a[0], parte) === 1)) return 72
+  // Ex.: “Gabrile Santos” em “Gabriel dos Santos Silva”.
+  const quaseEncaixa = (curto, longo) => curto.length >= 2 && curto.length <= longo.length && curto.some((_, i) => {
+    if (curto[i].length < 4) return false
+    return longo.some((parte) => parte.length >= 4 && distancia(curto[i], parte) === 1 && encaixa(curto.with(i, parte), longo))
+  })
+  if (quaseEncaixa(a, b) || quaseEncaixa(b, a)) return 75
+  return 0
+}
+
+// Nomes empatados ficam sem seleção para a diretoria decidir.
 export function casarNomes(nomes, jogadores) {
-  const ativos = jogadores.filter((jogador) => jogador.ativo !== false)
+  const ativos = jogadores.filter((j) => j.ativo !== false).map((j) => ({
+    id: j.id, nomes: [chaveNome(j.nome), chaveNome(j.apelido)].filter(Boolean),
+  }))
   return nomes.map((lido) => {
-    const alvo = semAcento(lido)
-    const exato = ativos.find(
-      (jogador) => semAcento(jogador.nome) === alvo || semAcento(jogador.apelido) === alvo,
-    )
-    if (exato) return { lido, jogadorId: exato.id, certeza: 'exato' }
-
-    const comeca = ativos.find((jogador) =>
-      [jogador.nome, jogador.apelido]
-        .filter(Boolean)
-        .some((texto) => semAcento(texto).startsWith(alvo) || alvo.startsWith(semAcento(texto))),
-    )
-    if (comeca) return { lido, jogadorId: comeca.id, certeza: 'parecido' }
-
-    const parte = ativos.find((jogador) =>
-      [jogador.nome, jogador.apelido]
-        .filter(Boolean)
-        .some((texto) => semAcento(texto).split(' ').includes(alvo)),
-    )
-    if (parte) return { lido, jogadorId: parte.id, certeza: 'parecido' }
-
-    return { lido, jogadorId: null, certeza: 'novo' }
+    const alvo = chaveNome(lido)
+    const encontrados = ativos.map(({ id, nomes }) => ({ id, pontos: Math.max(0, ...nomes.map((nome) => pontosDoNome(alvo, nome))) }))
+      .filter(({ pontos }) => pontos > 0).sort((a, b) => b.pontos - a.pontos)
+    const [melhor, segundo] = encontrados
+    if (!melhor) return { lido, jogadorId: null, certeza: 'novo' }
+    if (segundo && melhor.pontos - segundo.pontos < 4) return { lido, jogadorId: null, certeza: 'duvida' }
+    return { lido, jogadorId: melhor.id, certeza: melhor.pontos === 100 ? 'exato' : 'parecido' }
   })
 }
 

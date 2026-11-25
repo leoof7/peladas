@@ -27,7 +27,7 @@ export default function Entrar({ peladaId, usuario }) {
 
   const ativos = jogadores
     .filter((jogador) => jogador.ativo !== false)
-    .filter((jogador) => !busca.trim() || semAcento(jogador.nome || '').includes(semAcento(busca.trim())))
+    .filter((jogador) => !busca.trim() || [jogador.nome, jogador.apelido].some((nome) => semAcento(nome || '').includes(semAcento(busca.trim()))))
     .sort((um, outro) => (um.nome || '').localeCompare(outro.nome || '', 'pt-BR'))
 
   function oQueFalta() {
@@ -85,7 +85,7 @@ export default function Entrar({ peladaId, usuario }) {
       />
       <form className="conteudo" onSubmit={confirmar}>
         <AvisoModoTeste />
-        {erro && <p className="erro">{erro}</p>}
+        {erro && <p className="erro" role="alert">{erro}</p>}
 
         <div className="campo">
           <label htmlFor="codigo">1. Código da pelada</label>
@@ -105,8 +105,8 @@ export default function Entrar({ peladaId, usuario }) {
           <input
             id="busca"
             value={busca}
-            onChange={(evento) => definirBusca(evento.target.value)}
-            placeholder="Buscar seu nome"
+            onChange={(evento) => { definirBusca(evento.target.value); definirJogadorId('') }}
+            placeholder="Buscar nome ou apelido"
             autoComplete="off"
           />
         </div>
@@ -145,6 +145,8 @@ export default function Entrar({ peladaId, usuario }) {
           <label htmlFor="pin">3. Seu PIN de 4 números</label>
           <input
             id="pin"
+            type="password"
+            maxLength={4}
             className="codigo"
             value={pin}
             onChange={(evento) => definirPin(evento.target.value.replace(/\D/g, '').slice(0, 4))}

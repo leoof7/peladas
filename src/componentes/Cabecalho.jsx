@@ -6,6 +6,7 @@ export default function Cabecalho({ titulo, linha, aoVoltar, selo }) {
           ‹
         </button>
       )}
+      <img className="cabecalho__marca" src="./marca/lesete.svg" alt="Lesete" width="28" height="28" />
       <div className="cabecalho__textos">
         <h1 className="cabecalho__titulo">{titulo}</h1>
         {linha && <span className="cabecalho__linha">{linha}</span>}

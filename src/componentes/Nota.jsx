@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { NOTA_MAXIMA, PASSO, arredondar, notaEmNumero } from '../dados/estrelas.js'
 
 const CAMINHO = 'M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'
 const ESTRELAS = [1, 2, 3, 4, 5]
 
 function Estrela({ cheia }) {
+  const brilho = useId().replace(/:/g, '')
   return (
     <span className="estrela" aria-hidden="true">
       <svg viewBox="0 0 24 24" className="estrela__fundo">
@@ -15,7 +16,16 @@ function Estrela({ cheia }) {
         className="estrela__ouro"
         style={{ clipPath: `inset(0 ${100 - cheia * 100}% 0 0)` }}
       >
-        <path d={CAMINHO} />
+        <defs>
+          <linearGradient id={brilho} x1="0" y1="0" x2="0.35" y2="1">
+            <stop offset="0%" stopColor="#fff3b0" />
+            <stop offset="38%" stopColor="#ffd35d" />
+            <stop offset="65%" stopColor="#e5a323" />
+            <stop offset="100%" stopColor="#b97110" />
+          </linearGradient>
+        </defs>
+        <path d={CAMINHO} fill={`url(#${brilho})`} />
+        <path d="M12 3.8 14.2 9.3 20.1 9.8 15.7 13.6" className="estrela__reflexo" />
       </svg>
     </span>
   )

@@ -38,6 +38,6 @@ export function usePelada(peladaId, usuario) {
   }
 }
 
-export function corDaPelada(pelada) {
-  return pelada?.tipo === 'quadra-rateio' ? '#1f4f8f' : '#1e6b3c'
+export function corDaPelada() {
+  return '#1b4fd0'
 }

@@ -1,22 +1,29 @@
-import { dividirEmDois, montarTimes, presentes } from '../../dados/regras.js'
+import { useState } from 'react'
+import { dividirCampoPorChegada, dividirEmDois, montarTimes, montarTimesPorEstrelas, pesosDoSorteio, presentes } from '../../dados/regras.js'
 
 const CURTO = { goleiro: 'GOL', defesa: 'DEF', meio: 'MEI', ataque: 'ATA' }
 
 // Passo 2: os times. Na Madrugada sai na tampinha e o app só registra;
 // na Shekinah o app sorteia (ou registra a tampinha também).
 export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) {
+  const [previa, definirPrevia] = useState(null)
+  const [gravando, definirGravando] = useState(false)
   const ehMensal = pelada.cobranca === 'mensal'
-  const lista = presentes(jogo)
+  const lista = [...new Set(presentes(jogo))]
+  const assinatura = JSON.stringify([lista, jogo.times || []])
+  const proposta = previa?.assinatura === assinatura ? previa.times : null
   const times = jogo.times || []
   const porId = (id) => jogadores.find((jogador) => jogador.id === id)
   const uniformes = pelada.config?.uniformes || []
-  const porTime = Number(pelada.config?.naLinhaPorTime || (ehMensal ? 11 : 5))
+  const porTime = Math.max(1, Math.floor(Number(pelada.config?.naLinhaPorTime) || (ehMensal ? 10 : 5)))
+  const limiteCampo = Math.max(2, Math.floor(Number(pelada.config?.jogamPorDia) || (porTime + 1) * 2))
 
   const timeDe = (jogadorId) => times.findIndex((time) => (time.jogadores || []).includes(jogadorId))
   const semTime = lista.filter((jogadorId) => timeDe(jogadorId) === -1)
 
   function guardarTimes(novos) {
-    salvar({ times: novos })
+    definirPrevia(null)
+    return salvar({ times: novos })
   }
 
   function porJogador(jogadorId, indiceDoTime) {
@@ -30,40 +37,55 @@ export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) 
     }))
   }
 
-  function garantirDoisTimes() {
+  function baseDosTimes() {
     if (times.length >= 2) return times
     const padrao = [
       { nome: uniformes[0]?.nome || 'Time 1', cor: uniformes[0]?.cor || '#1f4f8f', jogadores: [] },
       { nome: uniformes[1]?.nome || 'Time 2', cor: uniformes[1]?.cor || '#17191b', jogadores: [] },
     ]
-    guardarTimes(padrao)
     return padrao
   }
 
-  function sugerirDivisao() {
-    const base = garantirDoisTimes()
-    const [um, outro] = dividirEmDois(lista.slice(0, porTime * 2), jogadores)
-    guardarTimes([
-      { ...base[0], jogadores: um },
-      { ...base[1], jogadores: outro },
-    ])
+  function formatarGrupos(grupos, equilibrado = false) {
+    return grupos.map((grupo, indice) => ({
+      nome: indice >= (equilibrado ? 2 : 1) && indice === grupos.length - 1 && grupo.length < porTime ? 'De fora' : `Time ${indice + 1}`,
+      cor: times[indice]?.cor || ['#17191b', '#1f4f8f', '#1e6b3c', '#9e3317'][indice % 4],
+      jogadores: grupo,
+    }))
   }
 
-  function sortearShekinah(modo) {
-    const grupos = montarTimes(lista, porTime, modo)
-    guardarTimes(
-      grupos.map((grupo, indice) => ({
-        // O último grupo só vira "De fora" quando ficou incompleto e existe
-        // pelo menos um time cheio antes dele.
-        nome:
-          indice > 0 && indice === grupos.length - 1 && grupo.length < porTime
-            ? 'De fora'
-            : `Time ${indice + 1}`,
-        cor: ['#17191b', '#1f4f8f', '#1e6b3c', '#9e3317'][indice % 4],
-        jogadores: grupo,
-      })),
-    )
+  function sugerirDivisao(modo) {
+    if (lista.length < 2) return
+    let novos
+    if (ehMensal) {
+      const base = baseDosTimes()
+      const grupos = modo === 'chegada'
+        ? dividirCampoPorChegada(lista, limiteCampo)
+        : dividirEmDois(lista.slice(0, limiteCampo), jogadores)
+      novos = grupos.map((grupo, indice) => ({ ...base[indice], jogadores: grupo }))
+    } else {
+      novos = modo === 'chegada'
+        ? formatarGrupos(montarTimes(lista, porTime, 'ordem'))
+        : formatarGrupos(montarTimesPorEstrelas(lista, porTime, jogadores), true)
+    }
+    definirPrevia({ assinatura, times: novos, modo })
   }
+
+  async function salvarProposta() {
+    if (!proposta || gravando) return
+    definirGravando(true)
+    try {
+      if (await salvar({ times: proposta })) definirPrevia(null)
+    } finally {
+      definirGravando(false)
+    }
+  }
+
+  const escalados = proposta?.filter((time) => time.nome !== 'De fora') || []
+  const pesos = pesosDoSorteio(escalados.flatMap((time) => time.jogadores), jogadores)
+  const total = (time) => time.jogadores.reduce((soma, id) => soma + (pesos.get(id)?.peso ?? 0), 0) / 2
+  const totais = escalados.map(total)
+  const semNota = escalados.flatMap((time) => time.jogadores).filter((id) => !porId(id)?.estrelas).length
 
   function trocarUniforme(indice, uniforme) {
     guardarTimes(times.map((time, outro) => (outro === indice ? { ...time, ...uniforme } : time)))
@@ -87,45 +109,50 @@ export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) 
       {ehDiretoria && (
         <section className="cartao">
           <h2 className="titulo-secao">Montar os times</h2>
-          {ehMensal ? (
-            <>
-              <p className="ajuda">
-                Os times saem na tampinha, ao vivo. Aqui você só registra quem ficou em cada um. Se quiser, o
-                app sugere uma divisão equilibrada por posição.
-              </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="botao" style={{ flex: 1 }} onClick={garantirDoisTimes}>
-                  Começar os dois times
-                </button>
-                <button type="button" className="botao" style={{ flex: 1 }} onClick={sugerirDivisao}>
-                  Sugerir divisão
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="ajuda">
-                {lista.length} na quadra · {porTime} na linha por time.
-              </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  type="button"
-                  className="botao botao--principal"
-                  style={{ flex: 1 }}
-                  onClick={() => sortearShekinah('aleatorio')}
-                >
-                  Sortear
-                </button>
-                <button type="button" className="botao" style={{ flex: 1 }} onClick={() => sortearShekinah('ordem')}>
-                  Ordem de chegada
-                </button>
-              </div>
-            </>
-          )}
+          <p className="ajuda">
+            {lista.length} chegaram. O sorteio aproxima a soma das estrelas e distribui os goleiros entre os times.
+            {ehMensal && ' A tampinha continua disponível para montar os times à mão.'}
+          </p>
+          <div className="acoes-times">
+            <button type="button" className="botao botao--principal" onClick={() => sugerirDivisao('estrelas')} disabled={lista.length < 2 || gravando}>
+              Por estrelas
+            </button>
+            <button type="button" className="botao" disabled={lista.length < 2 || gravando} onClick={() => sugerirDivisao('chegada')}>
+              Por ordem de chegada
+            </button>
+            {ehMensal && <button type="button" className="botao" disabled={gravando} onClick={() => {
+              definirPrevia(null)
+              if (times.length < 2) guardarTimes(baseDosTimes())
+            }}>Montar à mão</button>}
+          </div>
+          {previa && !proposta && !gravando && <p className="ajuda">A chegada ou os times mudaram. Tire os times de novo.</p>}
+
         </section>
       )}
 
-      {times.map((time, indice) => {
+      {ehDiretoria && proposta && (
+        <section className="cartao" aria-live="polite">
+          <h2 className="titulo-secao">Confira antes de salvar</h2>
+          <p className="ajuda">{previa.modo === 'chegada' ? 'Por ordem de chegada' : 'Por estrelas'}</p>
+          {ehMensal && lista.length > limiteCampo && <p className="ajuda">Quem chegou depois dos {limiteCampo} primeiros fica sem time para o segundo tempo.</p>}
+          {totais.length > 1 && <p className="ajuda">Diferença: {(Math.max(...totais) - Math.min(...totais)).toLocaleString('pt-BR')} ★</p>}
+          {previa.modo === 'estrelas' && semNota > 0 && <p className="ajuda">{totais.some(Boolean) ? "Quem está sem nota entra com a média do grupo só para o sorteio." : "Ainda não há notas. Os times foram divididos por quantidade e goleiros."}</p>}
+          <div className="comparar-times">
+          {proposta.map((time, indice) => (
+            <div className="time-proposto" key={indice}>
+              <strong>{time.nome} · {time.jogadores.length} {time.nome !== 'De fora' && `· ${total(time).toLocaleString('pt-BR')} ★`}</strong>
+              <ul>{time.jogadores.map((id) => <li key={id}>{porId(id)?.apelido || porId(id)?.nome || 'Jogador'}{porId(id)?.posicao === 'goleiro' ? ' · Goleiro' : ''}</li>)}</ul>
+            </div>
+          ))}
+          </div>
+          <div className="acoes-times">
+            <button type="button" className="botao" disabled={gravando} onClick={() => definirPrevia(null)}>Descartar</button>
+            <button type="button" className="botao botao--principal" disabled={gravando} onClick={salvarProposta}>{gravando ? 'Salvando…' : 'Salvar times'}</button>
+          </div>
+        </section>
+      )}
+
+      {!proposta && times.map((time, indice) => {
         const contagem = contarPosicoes(time)
         return (
           <section className="cartao" key={`${time.nome}-${indice}`}>
@@ -193,7 +220,7 @@ export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) 
         )
       })}
 
-      {ehDiretoria && times.length > 0 && semTime.length > 0 && (
+      {ehDiretoria && !proposta && times.length > 0 && semTime.length > 0 && (
         <section className="cartao">
           <h2 className="titulo-secao">Ainda sem time · {semTime.length}</h2>
           <p className="ajuda">Toque no time de cada um.</p>
@@ -205,7 +232,7 @@ export default function Times({ pelada, jogo, jogadores, ehDiretoria, salvar }) 
                   <span className="lista__detalhe"> · entra no 2º tempo</span>
                 )}
               </span>
-              {times.map((time, indice) => (
+              {!proposta && times.map((time, indice) => (
                 <button
                   key={`${jogadorId}-${indice}`}
                   type="button"

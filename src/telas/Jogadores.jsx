@@ -1,12 +1,13 @@
+import Abas from '../componentes/Abas.jsx'
 import { useEffect, useRef, useState } from 'react'
 import Avatar from '../componentes/Avatar.jsx'
 import Cabecalho from '../componentes/Cabecalho.jsx'
 import Nota from '../componentes/Nota.jsx'
-import { agora, apagar, gravar, novoId } from '../dados/api.js'
+import { agora, apagar, gravar, gravarLote, novoId } from '../dados/api.js'
+import { lerEstrelasColadas } from '../dados/importarEstrelas.js'
 import {
   POSICOES,
   daPosicao,
-  faixaDaEstrela,
   mediaDoGrupo,
   notaEmNumero,
   ordenarPorEstrela,
@@ -17,6 +18,9 @@ import { corDaPelada, usePelada } from '../dados/usePelada.js'
 import { semAcento } from '../util/formato.js'
 import { irPara } from '../util/rotas.js'
 import FichaJogador from './jogadores/FichaJogador.jsx'
+import Cartinha, { CartaJogador } from './jogadores/Cartinha.jsx'
+import { useColecao } from '../dados/useColecao.js'
+import { estatisticasDoAno } from '../dados/regras.js'
 
 // Arrastar o dedo muda a nota muitas vezes por segundo. A tela acompanha na
 // hora, mas o banco só recebe quando o dedo descansa.
@@ -110,16 +114,26 @@ function detalhesDoJogador(jogador) {
 
 export default function Jogadores({ peladaId, usuario }) {
   const { pelada, membro, jogadores, carregando, ehDiretoria } = usePelada(peladaId, usuario)
+  const jogos = useColecao(membro ? `peladas/${peladaId}/jogos` : null)
+  const ano = new Date().getFullYear()
+  const estatisticas = estatisticasDoAno(jogos, jogadores, ano)
+  const [cartaAberta, definirCartaAberta] = useState(null)
   const [ficha, definirFicha] = useState(null)
   const [editandoNome, definirEditandoNome] = useState(null)
   const [nomeEmEdicao, definirNomeEmEdicao] = useState('')
+  const [busca, definirBusca] = useState('')
   const [visao, definirVisao] = useState('lista')
   const [porEstrela, definirPorEstrela] = useState(null)
+  const [ordem, definirOrdem] = useState('posicao')
+  const [posicaoFiltrada, definirPosicaoFiltrada] = useState('todas')
   const [mostrarInativos, definirMostrarInativos] = useState(false)
   const [rascunho, definirRascunho] = useState({})
   const [erro, definirErro] = useState('')
   const [recado, definirRecado] = useState('')
   const [textoNaTela, definirTextoNaTela] = useState('')
+  const [textoEstrelas, definirTextoEstrelas] = useState('')
+  const [importacao, definirImportacao] = useState(null)
+  const [importando, definirImportando] = useState(false)
   const pendentes = useRef({})
   const temporizador = useRef(null)
 
@@ -251,6 +265,37 @@ export default function Jogadores({ peladaId, usuario }) {
     }
   }
 
+  async function aplicarEstrelas() {
+    const selecionados = importacao?.filter((item) => item.aplicar) || []
+    if (!ehDiretoria || importando || !selecionados.length) return
+    if (selecionados.some(({ jogadorId, anterior }) => {
+      const jogador = jogadores.find((j) => j.id === jogadorId)
+      return !jogador || jogador.ativo === false || (jogador.estrelas ?? 0) !== anterior || jogadorId in rascunho
+    })) {
+      definirErro('Uma nota mudou desde a revisão. Confira o texto novamente antes de salvar.')
+      return
+    }
+    if (selecionados.length > 500) {
+      definirErro('Divida o texto em partes com até 500 jogadores.')
+      return
+    }
+    definirImportando(true)
+    definirErro('')
+    try {
+      await gravarLote(selecionados.map(({ jogadorId, nota }) => ({
+        caminho: `peladas/${peladaId}/jogadores/${jogadorId}`,
+        dados: { estrelas: nota, estrelasPor: meuNome, estrelasEm: agora() },
+      })))
+      definirTextoEstrelas('')
+      definirImportacao(null)
+      avisar('Estrelas importadas.')
+    } catch {
+      definirErro('Não consegui importar as estrelas. Tente novamente.')
+    } finally {
+      definirImportando(false)
+    }
+  }
+
   async function copiar(lista) {
     const texto = textoPraColar(lista)
     if (!texto) {
@@ -298,7 +343,8 @@ export default function Jogadores({ peladaId, usuario }) {
     )
   }
 
-  const visiveis = jogadores.filter((jogador) => mostrarInativos || jogador.ativo !== false)
+  const procurado = semAcento(busca.trim())
+  const visiveis = jogadores.filter((jogador) => (mostrarInativos || jogador.ativo !== false) && (posicaoFiltrada === 'todas' || jogador.posicao === posicaoFiltrada) && (!procurado || [jogador.nome, jogador.apelido].some((nome) => semAcento(nome || '').includes(procurado))))
   const comNotaDaTela = visiveis.map((jogador) => ({ ...jogador, estrelas: notaNaTela(jogador) }))
   const media = mediaDoGrupo(comNotaDaTela)
   const ativos = jogadores.filter((jogador) => jogador.ativo !== false).length
@@ -314,14 +360,13 @@ export default function Jogadores({ peladaId, usuario }) {
     return [...doGrupo].sort((um, outro) => lugar(um) - lugar(outro))
   }
 
-  function alternarOrdem() {
-    if (porEstrela) {
-      definirPorEstrela(null)
-      return
-    }
-    definirPorEstrela(ordenarPorEstrela(comNotaDaTela).map((jogador) => jogador.id))
-    avisar('Do melhor pro pior. Toque de novo pra voltar à ordem dos nomes.')
+  function mudarOrdem(novaOrdem) {
+    definirOrdem(novaOrdem)
+    definirPorEstrela(novaOrdem === 'estrelas' ? ordenarPorEstrela(comNotaDaTela).map((jogador) => jogador.id) : null)
   }
+
+  const jogadorDaCarta = comNotaDaTela.find((item) => item.id === cartaAberta) || jogadores.find((item) => item.id === cartaAberta)
+  const grupos = ordem === 'posicao' ? POSICOES : [{ chave: 'todos', titulo: 'Jogadores' }]
 
   return (
     <div className="app" style={{ '--destaque': corDaPelada(pelada) }}>
@@ -344,6 +389,16 @@ export default function Jogadores({ peladaId, usuario }) {
             </button>
           </section>
         )}
+
+        {jogadorDaCarta && <Cartinha
+          jogador={jogadorDaCarta}
+          dados={estatisticas.find((item) => item.jogadorId === jogadorDaCarta.id)}
+          ano={ano}
+          aoMudarNota={ehDiretoria ? (nota) => mudarNota(jogadorDaCarta, nota) : undefined}
+          quemAlterou={ehDiretoria ? quemMexeu(jogadorDaCarta) : undefined}
+          aoFechar={() => definirCartaAberta(null)}
+          aoEditar={ehDiretoria ? () => { definirFicha(jogadorDaCarta); definirCartaAberta(null) } : undefined}
+        />}
 
         {ficha && ehDiretoria && (
           <FichaJogador
@@ -378,28 +433,62 @@ export default function Jogadores({ peladaId, usuario }) {
                   Cards
                 </button>
               </div>
-              <button
-                type="button"
-                className="botao botao--pequeno"
-                aria-pressed={Boolean(porEstrela)}
-                onClick={alternarOrdem}
-              >
-                {porEstrela ? 'Por nome' : 'Do melhor pro pior'}
-              </button>
+            </div>
+            {ehDiretoria && <details className="cartao painel-recolhivel">
+              <summary>Importar estrelas do WhatsApp</summary>
+              <label className="campo">Lista com as notas
+                <textarea className="area-texto" rows={4} value={textoEstrelas} disabled={importando}
+                  placeholder="Nome ou apelido ⭐⭐⭐,5"
+                  onChange={(evento) => { definirTextoEstrelas(evento.target.value); definirImportacao(null) }} />
+              </label>
+              <button type="button" className="botao" disabled={!textoEstrelas.trim() || importando}
+                onClick={() => definirImportacao(lerEstrelasColadas(textoEstrelas, jogadores))}>Revisar notas</button>
+              {importacao?.length === 0 && <p className="ajuda">Não encontrei linhas com estrelas válidas.</p>}
+              {importacao?.map((item, indice) => {
+                const nome = jogadores.find((j) => j.id === item.jogadorId)?.nome
+                return <label className="linha" key={indice}>
+                  <input type="checkbox" checked={item.aplicar} disabled={!nome || item.repetido || importando}
+                    onChange={(evento) => definirImportacao(importacao.map((linha, i) => i === indice ? { ...linha, aplicar: evento.target.checked } : linha))} />
+                  <span className="linha__nome">{item.nome}{nome && item.nome !== nome ? ` → ${nome}` : ''}
+                    <span className="lista__detalhe">{item.repetido ? ' · repetido na lista' : !nome ? ' · sem correspondência única' : item.anterior ? ` · atual: ${notaEmNumero(item.anterior)}` : ''}</span>
+                  </span>
+                  <strong>{notaEmNumero(item.nota)} ★</strong>
+                </label>
+              })}
+              {Boolean(importacao?.length) && <button type="button" className="botao botao--principal"
+                onClick={aplicarEstrelas} disabled={importando || !importacao.some((item) => item.aplicar)}>
+                {importando ? 'Importando…' : 'Salvar notas selecionadas'}
+              </button>}
+            </details>}
+            <label className="campo busca-jogadores">Buscar jogador<input type="search" value={busca} placeholder="Nome ou apelido" onChange={(evento) => definirBusca(evento.target.value)} /></label>
+            <div className="filtros-jogadores">
+              <label>Posição
+                <select value={posicaoFiltrada} onChange={(evento) => definirPosicaoFiltrada(evento.target.value)}>
+                  <option value="todas">Todas as posições</option>
+                  {POSICOES.map((posicao) => <option key={posicao.chave} value={posicao.chave}>{posicao.titulo}</option>)}
+                </select>
+              </label>
+              <label>Ordenar por
+                <select value={ordem} onChange={(evento) => mudarOrdem(evento.target.value)}>
+                  <option value="posicao">Posição</option>
+                  <option value="estrelas">Mais estrelas</option>
+                  <option value="nome">Nome</option>
+                </select>
+              </label>
             </div>
 
             {ehDiretoria && (
               <p className="ajuda">
-                Toque no nome pra corrigir. Toque na foto pra abrir a ficha. A estrela muda no
+                {visao === 'cards' ? 'Toque na carta para ampliar, ver as estatísticas e ajustar as estrelas. Na carta aberta, a nota muda no' : 'Toque no nome pra corrigir. Toque na foto pra abrir a ficha. A estrela muda no'}
                 toque ou arrastando o dedo, de meia em meia.
               </p>
             )}
 
             {visiveis.length === 0 ? (
-              <p className="ajuda">Nenhum jogador cadastrado ainda.</p>
+              <p className="ajuda">Nenhum jogador encontrado com esse filtro.</p>
             ) : (
-              POSICOES.map((posicao) => {
-                const doGrupo = ordenar(daPosicao(comNotaDaTela, posicao.chave))
+              grupos.map((posicao) => {
+                const doGrupo = ordenar(posicao.chave === 'todos' ? comNotaDaTela : daPosicao(comNotaDaTela, posicao.chave))
                 if (doGrupo.length === 0) return null
                 return (
                   <section key={posicao.chave} className="grupo">
@@ -442,7 +531,7 @@ export default function Jogadores({ peladaId, usuario }) {
                                 rotulo={`Estrelas de ${jogador.nome}`}
                                 somenteLeitura={!ehDiretoria}
                               />
-                              <span className="mexeu">{quemMexeu(jogador)}</span>
+                              {ehDiretoria && <span className="mexeu">{quemMexeu(jogador)}</span>}
                             </span>
                           </div>
                         ))}
@@ -450,33 +539,9 @@ export default function Jogadores({ peladaId, usuario }) {
                     ) : (
                       <div className="cards">
                         {doGrupo.map((jogador) => (
-                          <div
-                            key={jogador.id}
-                            className={`card card--${faixaDaEstrela(jogador.estrelas)}${
-                              jogador.ativo === false ? ' card--saiu' : ''
-                            }`}
-                          >
-                            <span className="card__canto">
-                              <span className="card__nota">
-                                {jogador.estrelas ? notaEmNumero(jogador.estrelas) : '–'}
-                              </span>
-                              <span className="card__posicao">{posicao.curto}</span>
-                            </span>
-                            <Retrato
-                              jogador={jogador}
-                              tamanho="grande"
-                              ehDiretoria={ehDiretoria}
-                              aoAbrirFicha={() => definirFicha(jogador)}
-                            />
-                            <span className="card__nome">{jogador.nome}</span>
-                            <Nota
-                              valor={jogador.estrelas}
-                              aoMudar={(nota) => mudarNota(jogador, nota)}
-                              rotulo={`Estrelas de ${jogador.nome}`}
-                              tamanho="pequeno"
-                              somenteLeitura={!ehDiretoria}
-                            />
-                            <span className="mexeu">{quemMexeu(jogador)}</span>
+                          <div key={jogador.id} className="carta-conjunto">
+                            <CartaJogador jogador={jogador} dados={estatisticas.find((item) => item.jogadorId === jogador.id)} aoAbrir={() => definirCartaAberta(jogador.id)} />
+
                           </div>
                         ))}
                       </div>
@@ -510,6 +575,7 @@ export default function Jogadores({ peladaId, usuario }) {
           </>
         )}
       </div>
+      {!ficha && <Abas peladaId={peladaId} atual="jogadores" />}
     </div>
   )
 }

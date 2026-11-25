@@ -21,7 +21,9 @@ export default function Inicial() {
 
   function abrirPorEndereco(evento) {
     evento.preventDefault()
-    const id = apelidoDoEndereco(endereco)
+    const texto = endereco.trim()
+    if (!texto) return
+    const id = apelidoDoEndereco(texto.match(/#\/p\/([^/?#]+)/)?.[1] || texto)
     if (id) irPara(`/p/${id}/entrar`)
   }
 
@@ -55,10 +57,10 @@ export default function Inicial() {
         <form className="cartao" onSubmit={abrirPorEndereco}>
           <h2 className="titulo-secao">Entrar numa pelada</h2>
           <p className="ajuda">
-            A diretoria manda o link da pelada no grupo. Se você tiver só o nome do endereço, digite aqui.
+            A diretoria manda o link da pelada no grupo. Cole o link ou digite o endereço aqui.
           </p>
           <div className="campo">
-            <label htmlFor="endereco">Endereço da pelada</label>
+            <label htmlFor="endereco">Link ou endereço da pelada</label>
             <input
               id="endereco"
               value={endereco}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Pix from '../../componentes/Pix.jsx'
 import { agora } from '../../dados/api.js'
 import { dividir, resultadoDoJogo, resumoDoDinheiroDoJogo } from '../../dados/regras.js'
@@ -5,6 +6,7 @@ import { dinheiro } from '../../util/formato.js'
 
 // Passo 4: quem paga esse dia, quanto, e quem já pagou.
 export default function Dinheiro({ pelada, jogo, jogadores, ehDiretoria, salvar, membro }) {
+  const [confirmar, definirConfirmar] = useState(null)
   const ehMensal = pelada.cobranca === 'mensal'
   const porId = (id) => jogadores.find((jogador) => jogador.id === id)
   const resumo = resumoDoDinheiroDoJogo(pelada, jogo, jogadores)
@@ -15,6 +17,7 @@ export default function Dinheiro({ pelada, jogo, jogadores, ehDiretoria, salvar,
   const recebedor = recebedores[indiceRecebedor]
   const pagamentos = jogo.pagamentos || {}
   const meuJogadorId = membro?.jogadorId
+  const minhaCobranca = resumo.cobrancas.find((item) => item.jogadorId === meuJogadorId)
 
   function marcar(jogadorId, pago) {
     salvar((atual) => ({
@@ -43,6 +46,16 @@ export default function Dinheiro({ pelada, jogo, jogadores, ehDiretoria, salvar,
       </p>
     )
   }
+
+  if (!ehDiretoria) return <>
+    <section className="cartao destaque-operacao">
+      <h2 className="titulo-secao">Meu pagamento</h2>
+      {minhaCobranca ? <><strong className="valor-resumo">{dinheiro(minhaCobranca.valor)}</strong>
+        <p className="ajuda" role="status">{pagamentos[meuJogadorId]?.pago ? 'Pagamento registrado' : 'Pagamento pendente'}</p></>
+        : <p className="ajuda">Você não tem cobrança neste jogo.</p>}
+    </section>
+    {minhaCobranca && !pagamentos[meuJogadorId]?.pago && <Pix recebedor={recebedor} titulo="Pagar por Pix" />}
+  </>
 
   const divisao = ehMensal ? null : dividir(Number(jogo.custo || 0), resumo.quantidade)
 
@@ -140,19 +153,22 @@ export default function Dinheiro({ pelada, jogo, jogadores, ehDiretoria, salvar,
         }
       />
 
-      {ehDiretoria && (
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button type="button" className="botao botao--contorno" style={{ flex: 1 }} onClick={() => marcarTodos(true)}>
-            Todos pagaram
-          </button>
-          <button type="button" className="botao" style={{ flex: 1 }} onClick={() => marcarTodos(false)}>
-            Desmarcar todos
-          </button>
-        </div>
-      )}
+      <details className="cartao painel-recolhivel">
+        <summary>Ações em lote</summary>
+        {confirmar === null ? <div className="acoes-times">
+          <button type="button" className="botao" onClick={() => definirConfirmar(true)}>Marcar todos como pagos</button>
+          <button type="button" className="botao" onClick={() => definirConfirmar(false)}>Desmarcar todos</button>
+        </div> : <div>
+          <p className="ajuda">{confirmar ? 'Marcar todas as cobranças como pagas?' : 'Desmarcar todos os pagamentos deste jogo?'}</p>
+          <div className="acoes-times">
+            <button type="button" className="botao" onClick={() => definirConfirmar(null)}>Voltar</button>
+            <button type="button" className="botao botao--principal" onClick={() => { marcarTodos(confirmar); definirConfirmar(null) }}>Confirmar</button>
+          </div>
+        </div>}
+      </details>
 
       <section className="cartao">
-        <h2 className="titulo-secao">Quem paga · {resumo.quantidade}</h2>
+        <h2 className="titulo-secao">Registrar pagamentos · {resumo.quantidade}</h2>
         {resumo.cobrancas.map(({ jogadorId, valor }) => {
           const pago = Boolean(pagamentos[jogadorId]?.pago)
           const souEu = jogadorId === meuJogadorId

@@ -165,3 +165,75 @@ commits atrás** do repositório `leoof7/lesete-cofre` e o rebase deu conflito e
 notas do Leandro (AGENDA, DIARIO, SETTE, SITE e outras). A nota das Peladas
 está comitada localmente, esperando ele resolver essa divergência. Não force o
 push: há risco de perder texto dele.
+
+## Continuação pelo Codex — 22/10/2026
+
+Implementado localmente, ainda sem publicar: cartas em formato de escudo com
+acabamento neutro, bronze, prata, ouro e craque azul/dourado. Mostram foto (ou
+iniciais), nome/apelido, posição, estrelas e gols, assistências e jogos do ano.
+Tocar abre uma janela com a carta ampliada e também vitórias, empates e derrotas.
+A diretoria pode abrir a edição do jogador por essa janela. O controle para
+alterar as estrelas fica fora do botão da carta.
+
+Arquivos: `src/telas/jogadores/Cartinha.jsx`, `src/telas/Jogadores.jsx` e
+`src/estilo.css`. Reaproveita `estatisticasDoAno`, sem inventar atributos de FIFA
+ou converter as notas para 0–99. Sem registro no ano, avisa na carta ampliada.
+
+Verificação: lint, montagem e 27 testes passaram. Falta conferir visualmente no
+navegador e obter autorização para publicar. O item 2 acima já foi implementado
+localmente; votos por diretor, sorteio e importação continuam pendentes.
+
+Ajuste seguinte aprovado por Leandro: estrelas com degradê dourado, contorno e
+reflexo, preservando meia estrela e os gestos existentes. Participantes não veem
+na lista nem nas cartas o nome de quem alterou a nota; a diretoria continua
+vendo. Isso oculta a informação na interface; `estrelasPor` ainda existe no
+documento compartilhado do jogador. Não foi alterada a regra de leitura do banco.
+Prévia demonstrativa gerada por `scripts/previa-cartas.mjs` com o componente real.
+
+Publicação autorizada por Leandro em 22/10/2026: `npm run publicar` concluído,
+commit `eccfbd5` em `gh-pages`. Endereço público respondeu HTTP 200 e passou a
+servir `index-YjCi4N60.js`, confirmando a versão nova. Não houve alteração de
+jogadores ou jogos no banco durante a publicação.
+
+## Ajuste de tamanho aprovado em 22/10/2026
+
+Grade compacta: até três cartas por linha no celular a partir de 390px, duas
+nas telas menores e quatro nas maiores. Foto reduzida, sem duplicar estrelas
+embaixo da carta. A diretoria ajusta a nota na janela da carta ampliada.
+Filtro de posição e ordenação geral por posição, mais estrelas ou nome. A
+ordenação por estrelas continua congelada durante a edição para evitar que o
+jogador mude de lugar enquanto a nota é ajustada.
+Lint e 27 testes passaram; montagem da publicação concluída.
+
+## Padrão Lesete, sorteio e importação — 11/11/2026
+
+- Identidade aplicada aos componentes comuns: símbolo oficial, Manrope local,
+  paleta azul e clara, cabeçalhos e botões. As cartas continuam compactas.
+- Tirar times: usa quem chegou, distribui goleiros e aproxima as somas.
+  Quem está sem nota usa a média do grupo só no cálculo. A proposta precisa
+  ser salva pela diretoria. Campo respeita o limite de quem começa; quadra
+  mantém o rodízio quando já há dois ou mais times completos.
+- Importação: nome/apelido, sobrenome, grafias próximas, acentos e formatação
+  de WhatsApp. Empates não são escolhidos. A diretoria revisa as sugestões,
+  corrige os vínculos e decide se cadastra convidados. Novos cadastros e lista
+  são gravados juntos.
+- Corrigidos também o aviso de segundo tempo fora do campo e a sugestão de
+  campo que cortava dois lugares ao contar só os jogadores de linha.
+- 30 testes, lint e montagem passaram. O navegador não abriu o servidor local.
+  Publicado em gh-pages no commit f5d99d1.
+
+## Redesenho dos fluxos e importação de notas — 11/11/2026
+
+- Produção autorizada por Leandro. Dia de jogo reorganizado, botões de ações
+  importantes separados, confirmação de cancelamento, configurações recolhíveis
+  e busca de jogadores por nome ou apelido. A visão do jogador na etapa de
+  pagamentos exibe apenas sua cobrança; as regras do banco não foram alteradas.
+- Campo e quadra: por estrelas ou por ordem de chegada, sempre com revisão
+  antes de salvar. Campo mantém a montagem à mão e os limites do primeiro tempo.
+- Jogadores: a diretoria pode importar notas coladas do WhatsApp, revisar as
+  correspondências e selecionar quais grava. Notas existentes não são marcadas
+  por padrão, e correspondências sem cadastro único ou repetidas ficam de fora.
+- 33 testes passaram; lint e montagem concluídos. O fluxo principal do redesenho
+  foi conferido na prévia com os dois perfis. Publicação em gh-pages: 16bc787.
+- Backlog aberto: média por diretor e privacidade no banco; leitura de listas
+  por foto/print e compartilhamento. A leitura de papel ainda depende de exemplo.
